@@ -10,27 +10,23 @@ const DOCK_ITEMS = [
 ]
 
 const BASE_SIZE = 48
-const MAX_SCALE = 1.8
-const MAGNIFICATION_RANGE = 150
+const MAX_SCALE = 1.3
+const MAGNIFICATION_RANGE = 100
 
-function getScale(itemCenterX: number, mouseX: number | null): number {
-  if (mouseX === null) return 1
-  const distance = Math.abs(mouseX - itemCenterX)
-  if (distance > MAGNIFICATION_RANGE) return 1
-  const ratio = 1 - distance / MAGNIFICATION_RANGE
+function getScale(distanceFromMouse: number): number {
+  if (distanceFromMouse > MAGNIFICATION_RANGE) return 1
+  const ratio = 1 - distanceFromMouse / MAGNIFICATION_RANGE
   return 1 + (MAX_SCALE - 1) * ratio * ratio
 }
 
 export default function Dock() {
-  const containerRef = useRef<HTMLDivElement>(null)
+  const itemRefs = useRef<(HTMLAnchorElement | null)[]>([])
   const [mouseX, setMouseX] = useState<number | null>(null)
   const routerState = useRouterState()
   const currentPath = routerState.location.pathname
 
   const handleMouseMove = useCallback((e: React.MouseEvent) => {
-    if (!containerRef.current) return
-    const rect = containerRef.current.getBoundingClientRect()
-    setMouseX(e.clientX - rect.left)
+    setMouseX(e.clientX)
   }, [])
 
   const handleMouseLeave = useCallback(() => {
@@ -41,21 +37,24 @@ export default function Dock() {
     <nav
       className="fixed bottom-4 left-1/2 z-50 -translate-x-1/2"
       aria-label="Main navigation"
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
     >
-      <div
-        ref={containerRef}
-        className="surface flex items-end gap-2 px-3 pb-2 pt-2"
-        onMouseMove={handleMouseMove}
-        onMouseLeave={handleMouseLeave}
-      >
+      <div className="flex items-end gap-1.5">
         {DOCK_ITEMS.map((item, index) => {
           const isActive = currentPath === item.to
-          const itemCenter = (index + 0.5) * (BASE_SIZE + 8) + 12
-          const scale = getScale(itemCenter, mouseX)
+          const el = itemRefs.current[index]
+          let scale = 1
+          if (mouseX !== null && el) {
+            const rect = el.getBoundingClientRect()
+            const itemCenter = rect.left + rect.width / 2
+            scale = getScale(Math.abs(mouseX - itemCenter))
+          }
 
           return (
             <DockItem
               key={item.to}
+              ref={(node) => { itemRefs.current[index] = node }}
               to={item.to}
               label={item.label}
               icon={item.icon}
@@ -69,56 +68,64 @@ export default function Dock() {
   )
 }
 
-function DockItem({
-  to,
-  label,
-  icon: Icon,
-  isActive,
-  scale,
-}: {
-  to: string
-  label: string
-  icon: typeof User
-  isActive: boolean
-  scale: number
-}) {
+import { forwardRef } from 'react'
+
+const DockItem = forwardRef<
+  HTMLAnchorElement,
+  {
+    to: string
+    label: string
+    icon: typeof User
+    isActive: boolean
+    scale: number
+  }
+>(function DockItem({ to, label, icon: Icon, isActive, scale }, ref) {
   return (
     <Link
+      ref={ref}
       to={to}
       className="group/dock-item relative flex flex-col items-center"
       aria-label={label}
     >
-      {/* Tooltip */}
-      <span
-        className={cn(
-          'pointer-events-none absolute -top-10 whitespace-nowrap px-3 py-1.5 text-xs font-medium',
-          'surface',
-          'opacity-0 transition-opacity group-hover/dock-item:opacity-100'
-        )}
-      >
-        {label}
-      </span>
-
-      {/* Icon container */}
+      {/* Icon + tooltip container - scales together */}
       <div
-        className={cn(
-          'flex items-center justify-center transition-[transform] duration-200',
-          isActive ? 'surface-btn bg-primary/10' : 'surface-btn bg-background/50'
-        )}
+        className="flex flex-col items-center"
         style={{
-          width: BASE_SIZE,
-          height: BASE_SIZE,
           transform: `scale(${scale})`,
           transformOrigin: 'bottom center',
-          borderRadius: 'var(--surface-radius)',
+          transition: 'transform 0.15s ease-out',
         }}
       >
-        <Icon
+        {/* Tooltip */}
+        <span
           className={cn(
-            'size-5 transition-colors',
-            isActive ? 'text-primary' : 'text-foreground/70'
+            'pointer-events-none mb-2 whitespace-nowrap px-3 py-1.5 text-xs font-medium',
+            'surface',
+            'opacity-0 transition-opacity group-hover/dock-item:opacity-100'
           )}
-        />
+        >
+          {label}
+        </span>
+
+        {/* Icon container */}
+        <div
+          className={cn(
+            'flex items-center justify-center',
+            isActive ? 'surface-btn bg-primary/10' : 'surface-btn bg-background/50'
+          )}
+          style={{
+            width: BASE_SIZE,
+            height: BASE_SIZE,
+            borderRadius: 'var(--surface-radius)',
+          }}
+        >
+          <Icon
+            className={cn(
+              'size-5 transition-colors',
+              isActive ? 'text-primary' : 'text-foreground/70'
+            )}
+          />
+        </div>
       </div>
 
       {/* Active indicator dot */}
@@ -130,4 +137,4 @@ function DockItem({
       />
     </Link>
   )
-}
+})
