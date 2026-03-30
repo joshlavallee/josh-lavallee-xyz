@@ -8,6 +8,8 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
     steps:
       - name: Checkout Repository
@@ -32,7 +34,7 @@ jobs:
         run: npm run build
 
       - name: Deploy to S3
-        run: aws s3 sync ./dist s3://${{ secrets.BUCKET_NAME }}
+        run: aws s3 sync ./dist/client s3://${{ secrets.BUCKET_NAME }}
 
       - name: Create CloudFront Invalidation
         run: aws cloudfront create-invalidation --distribution-id ${{ secrets.DISTRIBUTION_ID }} --paths "/*"

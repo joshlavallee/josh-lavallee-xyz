@@ -14,7 +14,13 @@ export default defineConfig({
     },
   },
   plugins: [
-    tanstackStart({ customViteReactPlugin: true }),
+    tanstackStart({
+      customViteReactPlugin: true,
+      prerender: {
+        enabled: true,
+        crawlLinks: true,
+      },
+    }),
     react(),
     tailwindcss(),
   ],
