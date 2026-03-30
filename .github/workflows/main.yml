@@ -16,7 +16,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -26,10 +26,10 @@ jobs:
           aws-region: us-east-1
 
       - name: Install Dependencies
-        run: yarn install --frozen-lockfile
+        run: npm ci
 
       - name: Build Application
-        run: yarn run build
+        run: npm run build
 
       - name: Deploy to S3
         run: aws s3 sync ./dist s3://${{ secrets.BUCKET_NAME }}
