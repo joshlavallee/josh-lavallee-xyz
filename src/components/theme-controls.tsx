@@ -16,24 +16,25 @@ export default function ThemeControls() {
       {/* Color mode toggle */}
       <button
         onClick={toggleColorMode}
-        className="surface flex h-10 w-10 items-center justify-center rounded-xl text-foreground/80 transition-colors hover:text-foreground"
+        className="surface surface-btn flex h-10 w-10 items-center justify-center text-foreground/80 transition-colors hover:text-foreground"
         aria-label={`Switch to ${colorMode === 'dark' ? 'light' : 'dark'} mode`}
       >
         {colorMode === 'dark' ? <Sun className="size-4" /> : <Moon className="size-4" />}
       </button>
 
       {/* UI style selector */}
-      <div className="surface flex rounded-xl p-1">
+      <div className="surface flex p-1">
         {UI_STYLES.map(({ value, label, icon: Icon }) => (
           <button
             key={value}
             onClick={() => setUIStyle(value)}
             className={cn(
-              'flex h-8 items-center gap-1.5 rounded-lg px-2.5 text-xs font-medium transition-colors',
+              'flex h-8 items-center gap-1.5 px-2.5 text-xs font-medium transition-all',
               uiStyle === value
-                ? 'bg-primary text-primary-foreground'
+                ? 'surface-btn bg-primary text-primary-foreground'
                 : 'text-foreground/60 hover:text-foreground'
             )}
+            style={{ borderRadius: 'var(--surface-radius)' }}
             aria-label={`${label} style`}
             aria-pressed={uiStyle === value}
           >
