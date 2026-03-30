@@ -10,7 +10,7 @@ import { Canvas } from '@react-three/fiber'
 import Experience from '@/Experience'
 import { CAMERA_SETTINGS, GL_SETTINGS, PIXEL_RATIO } from '@/settings'
 import ThemeProvider from '@/providers/theme-provider'
-import { ThemeControls } from '@/components'
+import { Dock, ThemeControls } from '@/components'
 import '@/index.css'
 
 const ANTI_FLASH_SCRIPT = `
@@ -67,6 +67,7 @@ function RootDocument({ children }: Readonly<{ children: ReactNode }>) {
             {children}
           </div>
           <ThemeControls />
+          <Dock />
         </ThemeProvider>
         <Scripts />
       </body>
