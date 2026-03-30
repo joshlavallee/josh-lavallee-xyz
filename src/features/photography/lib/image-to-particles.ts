@@ -2,7 +2,6 @@ import type { ParticleData } from '../types'
 
 interface ImageToParticlesOptions {
   threshold?: number
-  skip?: number
   maxParticles?: number
 }
 
@@ -10,23 +9,15 @@ export async function imageToParticles(
   imageUrl: string,
   options: ImageToParticlesOptions = {}
 ): Promise<ParticleData> {
-  const { threshold = 0, skip = 1, maxParticles = 350000 } = options
+  const { threshold = 0.13, maxParticles = 60000 } = options
 
   const img = await loadImage(imageUrl)
   const canvas = document.createElement('canvas')
   const ctx = canvas.getContext('2d')!
 
-  // Downsample to a manageable resolution that fits within maxParticles
-  const totalPixels = (img.width / skip) * (img.height / skip)
-  let sampleWidth = Math.floor(img.width / skip)
-  let sampleHeight = Math.floor(img.height / skip)
-
-  // If still too many, scale down proportionally
-  if (totalPixels > maxParticles) {
-    const scale = Math.sqrt(maxParticles / totalPixels)
-    sampleWidth = Math.floor(sampleWidth * scale)
-    sampleHeight = Math.floor(sampleHeight * scale)
-  }
+  // Downsample to ~320px wide like the original demo
+  const sampleWidth = 320
+  const sampleHeight = Math.round(320 / (img.width / img.height))
 
   canvas.width = sampleWidth
   canvas.height = sampleHeight
@@ -43,6 +34,8 @@ export async function imageToParticles(
 
   for (let y = 0; y < sampleHeight; y++) {
     for (let x = 0; x < sampleWidth; x++) {
+      if (tempPositions.length / 3 >= maxParticles) break
+
       const i = (y * sampleWidth + x) * 4
       const r = pixels[i] / 255
       const g = pixels[i + 1] / 255
@@ -52,14 +45,12 @@ export async function imageToParticles(
 
       if (brightness < threshold || a < 0.5) continue
 
-      // Map pixel position to centered coordinates (-0.5 to 0.5 on Y axis)
       const px = (x / sampleWidth - 0.5) * imageAspect
       const py = 0.5 - y / sampleHeight
-      const pz = 0
 
-      tempPositions.push(px, py, pz)
+      tempPositions.push(px, py, 0)
       tempColors.push(r, g, b)
-      tempSizes.push(1.0) // uniform size; shader handles actual sizing
+      tempSizes.push(brightness)
       tempRandoms.push(Math.random())
     }
   }

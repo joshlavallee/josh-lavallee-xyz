@@ -42,37 +42,31 @@ export default function ParticlePhotography({ colorMode, uiStyle, photoIndex }: 
     return () => { cancelled = true }
   }, [photo.id, photo.src])
 
-  const touchTexture = useTouchInteraction(particleData?.imageAspect ?? 1)
+  const imgAspect = particleData?.imageAspect ?? (4 / 3)
+  const touchTexture = useTouchInteraction(imgAspect)
 
   if (!particleData) return null
 
   const settings = THEME_SETTINGS[uiStyle]
 
-  // Cover-fit: make the image fill the entire viewport (like CSS background-size: cover)
+  // Contain-fit: show full image, preserving its aspect ratio
   const viewportAspect = size.width / size.height
-  const imgAspect = particleData.imageAspect
-
-  // The particle grid spans from -imgAspect/2 to +imgAspect/2 on X, -0.5 to +0.5 on Y
-  // For cover fit, we want the image to fill the viewport completely
   let cameraHalfW: number, cameraHalfH: number
   if (viewportAspect > imgAspect) {
-    // Viewport is wider: fit width, crop top/bottom
-    cameraHalfW = imgAspect / 2
-    cameraHalfH = cameraHalfW / viewportAspect
-  } else {
-    // Viewport is taller: fit height, crop sides
+    // Viewport wider than image: fit height, letterbox sides
     cameraHalfH = 0.5
     cameraHalfW = cameraHalfH * viewportAspect
+  } else {
+    // Viewport taller than image: fit width, letterbox top/bottom
+    cameraHalfW = imgAspect / 2
+    cameraHalfH = cameraHalfW / viewportAspect
   }
 
-  // Calculate point size so particles tile seamlessly to form the image
-  // The visible width in world units = cameraHalfW * 2
-  // The number of particles across = sampleWidth ≈ sqrt(count * imgAspect)
+  // Point size calculation
   const particlesAcross = Math.sqrt(particleData.count * imgAspect)
   const pixelSpacing = imgAspect / particlesAcross
-  // Point size in pixels: spacing in world units * pixels per world unit
   const worldToPixels = size.width / (cameraHalfW * 2)
-  const pointSize = pixelSpacing * worldToPixels * 0.85 // slight gaps so individual particles are visible
+  const pointSize = pixelSpacing * worldToPixels * 0.85
 
   return (
     <>
@@ -93,6 +87,7 @@ export default function ParticlePhotography({ colorMode, uiStyle, photoIndex }: 
         softness={settings.softness}
         pointSize={pointSize}
         displacementScale={settings.displacementScale}
+        invertColors={colorMode === 'light' ? 1 : 0}
       />
     </>
   )

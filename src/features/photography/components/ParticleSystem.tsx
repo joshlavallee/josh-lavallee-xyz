@@ -6,8 +6,9 @@ import vertexShader from '../shaders/particle.vert.glsl?raw'
 import fragmentShader from '../shaders/particle.frag.glsl?raw'
 import noiseGlsl from '../shaders/noise.glsl?raw'
 
-const MAX_PARTICLES = 350000
-const LERP_SPEED = 3.0
+const MAX_PARTICLES = 60000
+const LERP_SPEED = 4.0
+const LERP_THRESHOLD = 0.0001
 
 interface ParticleSystemProps {
   data: ParticleData
@@ -16,6 +17,7 @@ interface ParticleSystemProps {
   softness?: number
   pointSize?: number
   displacementScale?: number
+  invertColors?: number
 }
 
 export default function ParticleSystem({
@@ -25,21 +27,21 @@ export default function ParticleSystem({
   softness = 0.15,
   pointSize = 1.5,
   displacementScale = 1.0,
+  invertColors = 0,
 }: ParticleSystemProps) {
-  const pointsRef = useRef<THREE.Points>(null)
   const materialRef = useRef<THREE.ShaderMaterial>(null)
   const geometryRef = useRef<THREE.BufferGeometry>(null)
 
-  // Persistent buffers that get lerped toward target
-  const buffersRef = useRef({
-    currentPositions: new Float32Array(MAX_PARTICLES * 3),
-    currentColors: new Float32Array(MAX_PARTICLES * 3),
-    currentSizes: new Float32Array(MAX_PARTICLES),
+  const stateRef = useRef({
+    positions: new Float32Array(MAX_PARTICLES * 3),
+    colors: new Float32Array(MAX_PARTICLES * 3),
+    sizes: new Float32Array(MAX_PARTICLES),
     randoms: new Float32Array(MAX_PARTICLES),
-    targetPositions: new Float32Array(MAX_PARTICLES * 3),
-    targetColors: new Float32Array(MAX_PARTICLES * 3),
-    targetSizes: new Float32Array(MAX_PARTICLES),
-    initialized: false,
+    targetPositions: null as Float32Array | null,
+    targetColors: null as Float32Array | null,
+    targetSizes: null as Float32Array | null,
+    activeCount: 0,
+    isLerping: false,
   })
 
   const fullVertexShader = useMemo(
@@ -56,70 +58,65 @@ export default function ParticleSystem({
       uDisplacementScale: { value: displacementScale },
       uOpacity: { value: opacity },
       uSoftness: { value: softness },
+      uInvertColors: { value: invertColors },
     }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     []
   )
 
-  // When data changes, update target buffers
+  // When data changes, either snap or set up a lerp transition
   useEffect(() => {
-    const b = buffersRef.current
-
-    // Reset targets to zero (hides unused particles)
-    b.targetPositions.fill(0)
-    b.targetColors.fill(0)
-    b.targetSizes.fill(0)
-
-    // Copy new data into targets
+    const s = stateRef.current
     const count = Math.min(data.count, MAX_PARTICLES)
-    b.targetPositions.set(data.positions.subarray(0, count * 3))
-    b.targetColors.set(data.colors.subarray(0, count * 3))
-    b.targetSizes.set(data.sizes.subarray(0, count))
 
-    // Copy randoms (no lerp needed)
-    b.randoms.fill(0)
-    b.randoms.set(data.randoms.subarray(0, count))
+    // Build padded target arrays (zeros for unused slots)
+    const tPos = new Float32Array(MAX_PARTICLES * 3)
+    const tCol = new Float32Array(MAX_PARTICLES * 3)
+    const tSiz = new Float32Array(MAX_PARTICLES)
+    tPos.set(data.positions.subarray(0, count * 3))
+    tCol.set(data.colors.subarray(0, count * 3))
+    tSiz.set(data.sizes.subarray(0, count))
 
-    // On first load, snap to target immediately
-    if (!b.initialized) {
-      b.currentPositions.set(b.targetPositions)
-      b.currentColors.set(b.targetColors)
-      b.currentSizes.set(b.targetSizes)
-      b.initialized = true
-    }
+    // Update randoms
+    s.randoms.fill(0)
+    s.randoms.set(data.randoms.subarray(0, count))
 
-    // Update randoms attribute
-    if (geometryRef.current) {
-      const randomAttr = geometryRef.current.getAttribute('aRandom') as THREE.BufferAttribute
-      randomAttr.array = b.randoms
-      randomAttr.needsUpdate = true
+    s.activeCount = Math.max(count, s.activeCount)
+
+    if (!s.targetPositions) {
+      // First load: snap directly, no lerp
+      s.positions.set(tPos)
+      s.colors.set(tCol)
+      s.sizes.set(tSiz)
+      s.targetPositions = tPos
+      s.targetColors = tCol
+      s.targetSizes = tSiz
+      s.isLerping = false
+
+      // Upload immediately
+      if (geometryRef.current) {
+        flagAllAttributes(geometryRef.current)
+        const randomAttr = geometryRef.current.getAttribute('aRandom') as THREE.BufferAttribute
+        randomAttr.needsUpdate = true
+      }
+    } else {
+      // Transition: set targets, start lerping
+      s.targetPositions = tPos
+      s.targetColors = tCol
+      s.targetSizes = tSiz
+      s.isLerping = true
+
+      if (geometryRef.current) {
+        const randomAttr = geometryRef.current.getAttribute('aRandom') as THREE.BufferAttribute
+        randomAttr.needsUpdate = true
+      }
     }
   }, [data])
 
   useFrame((_, delta) => {
-    if (!materialRef.current || !geometryRef.current) return
+    if (!materialRef.current) return
 
-    const b = buffersRef.current
-    const t = Math.min(LERP_SPEED * delta, 1)
-
-    // Lerp positions, colors, and sizes toward targets
-    for (let i = 0; i < MAX_PARTICLES * 3; i++) {
-      b.currentPositions[i] += (b.targetPositions[i] - b.currentPositions[i]) * t
-      b.currentColors[i] += (b.targetColors[i] - b.currentColors[i]) * t
-    }
-    for (let i = 0; i < MAX_PARTICLES; i++) {
-      b.currentSizes[i] += (b.targetSizes[i] - b.currentSizes[i]) * t
-    }
-
-    // Flag attributes for GPU upload
-    const posAttr = geometryRef.current.getAttribute('position') as THREE.BufferAttribute
-    const colorAttr = geometryRef.current.getAttribute('color') as THREE.BufferAttribute
-    const sizeAttr = geometryRef.current.getAttribute('aSize') as THREE.BufferAttribute
-    posAttr.needsUpdate = true
-    colorAttr.needsUpdate = true
-    sizeAttr.needsUpdate = true
-
-    // Update uniforms
+    // Always update time and uniforms (cheap)
     materialRef.current.uniforms.uTime.value += delta
     materialRef.current.uniforms.uTouchTexture.value = touchTexture
     materialRef.current.uniforms.uPointSize.value = pointSize
@@ -127,34 +124,68 @@ export default function ParticleSystem({
     materialRef.current.uniforms.uDisplacementScale.value = displacementScale
     materialRef.current.uniforms.uOpacity.value = opacity
     materialRef.current.uniforms.uSoftness.value = softness
+    materialRef.current.uniforms.uInvertColors.value = invertColors
+
+    // Only lerp buffers during transitions
+    const s = stateRef.current
+    if (!s.isLerping || !s.targetPositions || !geometryRef.current) return
+
+    const t = Math.min(LERP_SPEED * delta, 1)
+    const n3 = s.activeCount * 3
+    const n = s.activeCount
+    let maxDiff = 0
+
+    for (let i = 0; i < n3; i++) {
+      const diff = s.targetPositions[i] - s.positions[i]
+      s.positions[i] += diff * t
+      if (Math.abs(diff) > maxDiff) maxDiff = Math.abs(diff)
+    }
+    for (let i = 0; i < n3; i++) {
+      s.colors[i] += (s.targetColors![i] - s.colors[i]) * t
+    }
+    for (let i = 0; i < n; i++) {
+      s.sizes[i] += (s.targetSizes![i] - s.sizes[i]) * t
+    }
+
+    flagAllAttributes(geometryRef.current)
+
+    // Stop lerping once converged
+    if (maxDiff < LERP_THRESHOLD) {
+      s.positions.set(s.targetPositions)
+      s.colors.set(s.targetColors!)
+      s.sizes.set(s.targetSizes!)
+      s.isLerping = false
+      s.activeCount = Math.min(data.count, MAX_PARTICLES)
+      flagAllAttributes(geometryRef.current)
+    }
   })
 
-  const b = buffersRef.current
+  const s = stateRef.current
 
   return (
-    <points ref={pointsRef}>
+    <points>
       <bufferGeometry ref={geometryRef}>
         <bufferAttribute
           attach="attributes-position"
-          array={b.currentPositions}
+          array={s.positions}
           count={MAX_PARTICLES}
           itemSize={3}
         />
         <bufferAttribute
           attach="attributes-color"
-          array={b.currentColors}
+          array={s.colors}
           count={MAX_PARTICLES}
           itemSize={3}
         />
         <bufferAttribute
           attach="attributes-aSize"
-          array={b.currentSizes}
+          array={s.sizes}
           count={MAX_PARTICLES}
           itemSize={1}
         />
         <bufferAttribute
           attach="attributes-aRandom"
-          array={b.randoms}
+          array={s.randoms}
           count={MAX_PARTICLES}
           itemSize={1}
         />
@@ -170,4 +201,13 @@ export default function ParticleSystem({
       />
     </points>
   )
+}
+
+function flagAllAttributes(geometry: THREE.BufferGeometry) {
+  const pos = geometry.getAttribute('position') as THREE.BufferAttribute
+  const col = geometry.getAttribute('color') as THREE.BufferAttribute
+  const siz = geometry.getAttribute('aSize') as THREE.BufferAttribute
+  if (pos) pos.needsUpdate = true
+  if (col) col.needsUpdate = true
+  if (siz) siz.needsUpdate = true
 }
