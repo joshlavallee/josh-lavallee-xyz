@@ -1,0 +1,22 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(find /Users/josh.lavallee/workspace/personal_github_projects/josh-lavallee-xyz -maxdepth 3 -type f \\\\\\(-name *lock* -o -name .npmrc -o -name .yarnrc* -o -name .pnpmrc -o -name pnpm-workspace.yaml \\\\\\))",
+      "Bash(find . -maxdepth 2 -type f ! -path ./.git/* ! -path ./node_modules/* ! -path ./.claude/*)",
+      "Bash(npm install:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(npm run:*)",
+      "WebFetch(domain:tanstack.com)",
+      "Bash(lsof -t -i:5173 -i:5174)",
+      "Bash(xargs kill:*)",
+      "WebFetch(domain:ui.shadcn.com)",
+      "Bash(npx skills:*)",
+      "Bash(npm ls:*)",
+      "Bash(npm uninstall:*)",
+      "Bash(lsof -t -i:3000 -i:3001)",
+      "Bash(npx:*)"
+    ]
+  }
+}
