@@ -231,102 +231,116 @@ body {
 
 /* ============================================
    UI STYLE: GLASSMORPHISM (Liquid Glass)
-   Translucent surfaces with strong blur,
-   gradient borders, prismatic reflections.
+   Highly translucent surfaces with heavy blur,
+   shimmering borders, prismatic reflections.
    ============================================ */
 
 [data-style="glass"] {
-  --surface-bg: oklch(from var(--card) l c h / 35%);
-  --surface-blur: 24px;
+  --surface-bg: oklch(from var(--card) l c h / 18%);
+  --surface-blur: 32px;
   --surface-shadow:
-    0 8px 32px oklch(0 0 0 / 8%),
-    0 2px 8px oklch(0 0 0 / 5%),
-    inset 0 1px 0 oklch(1 0 0 / 40%);
+    0 8px 32px oklch(0 0 0 / 6%),
+    0 2px 8px oklch(0 0 0 / 4%),
+    inset 0 1px 0 oklch(1 0 0 / 50%),
+    inset 0 -1px 0 oklch(1 0 0 / 10%);
   --surface-shadow-hover:
-    0 12px 40px oklch(0.65 0.30 335 / 15%),
-    0 4px 12px oklch(0 0 0 / 8%),
-    inset 0 1px 0 oklch(1 0 0 / 50%);
-  --surface-border: 1px solid oklch(1 0 0 / 25%);
+    0 12px 48px oklch(0.65 0.30 335 / 12%),
+    0 4px 16px oklch(0.55 0.22 290 / 8%),
+    inset 0 1px 0 oklch(1 0 0 / 60%),
+    inset 0 -1px 0 oklch(1 0 0 / 15%);
+  --surface-border: 1px solid oklch(1 0 0 / 30%);
   --surface-radius: 1rem;
   --surface-inset-shadow:
-    inset 0 2px 4px oklch(0 0 0 / 8%),
-    inset 0 1px 0 oklch(1 0 0 / 20%);
+    inset 0 2px 6px oklch(0 0 0 / 6%),
+    inset 0 1px 0 oklch(1 0 0 / 25%),
+    inset 0 -1px 0 oklch(1 0 0 / 10%);
   --surface-btn-shadow:
-    0 2px 8px oklch(0 0 0 / 10%),
-    inset 0 1px 0 oklch(1 0 0 / 30%);
-  --surface-btn-shadow-hover:
-    0 4px 16px oklch(0.65 0.30 335 / 20%),
+    0 2px 8px oklch(0 0 0 / 6%),
     inset 0 1px 0 oklch(1 0 0 / 40%);
+  --surface-btn-shadow-hover:
+    0 4px 20px oklch(0.65 0.30 335 / 18%),
+    inset 0 1px 0 oklch(1 0 0 / 50%);
 }
 
 .dark[data-style="glass"] {
-  --surface-bg: oklch(from var(--card) l c h / 25%);
+  --surface-bg: oklch(from var(--card) l c h / 12%);
+  --surface-blur: 32px;
   --surface-shadow:
-    0 8px 32px oklch(0 0 0 / 30%),
-    0 2px 8px oklch(0 0 0 / 20%),
-    inset 0 1px 0 oklch(1 0 0 / 10%);
+    0 8px 32px oklch(0 0 0 / 25%),
+    0 2px 8px oklch(0 0 0 / 15%),
+    inset 0 1px 0 oklch(1 0 0 / 8%),
+    inset 0 -1px 0 oklch(1 0 0 / 3%);
   --surface-shadow-hover:
-    0 12px 40px oklch(0.75 0.28 335 / 20%),
-    0 4px 12px oklch(0 0 0 / 25%),
-    inset 0 1px 0 oklch(1 0 0 / 15%);
-  --surface-border: 1px solid oklch(1 0 0 / 12%);
+    0 12px 48px oklch(0.75 0.28 335 / 18%),
+    0 4px 16px oklch(0.65 0.20 290 / 10%),
+    inset 0 1px 0 oklch(1 0 0 / 12%),
+    inset 0 -1px 0 oklch(1 0 0 / 5%);
+  --surface-border: 1px solid oklch(1 0 0 / 10%);
   --surface-inset-shadow:
-    inset 0 2px 4px oklch(0 0 0 / 20%),
-    inset 0 1px 0 oklch(1 0 0 / 8%);
+    inset 0 2px 6px oklch(0 0 0 / 18%),
+    inset 0 1px 0 oklch(1 0 0 / 6%),
+    inset 0 -1px 0 oklch(1 0 0 / 3%);
   --surface-btn-shadow:
-    0 2px 8px oklch(0 0 0 / 25%),
-    inset 0 1px 0 oklch(1 0 0 / 10%);
+    0 2px 8px oklch(0 0 0 / 20%),
+    inset 0 1px 0 oklch(1 0 0 / 8%);
   --surface-btn-shadow-hover:
-    0 4px 16px oklch(0.75 0.28 335 / 25%),
-    inset 0 1px 0 oklch(1 0 0 / 15%);
+    0 4px 20px oklch(0.75 0.28 335 / 22%),
+    inset 0 1px 0 oklch(1 0 0 / 12%);
 }
 
 /* ============================================
-   UI STYLE: NEUMORPHISM
-   Soft, extruded surfaces that appear pressed
-   out of or into the background. Cards share
-   the background color with dual-direction
-   shadows for the raised illusion.
+   UI STYLE: PAPER
+   Soft, tactile surfaces that feel like layered
+   paper or card stock. Matte finish, gentle
+   embossing, rounded edges, warm subtle texture.
    ============================================ */
 
-[data-style="neumorphism"] {
+[data-style="paper"] {
   --surface-bg: var(--background);
   --surface-blur: 0px;
   --surface-shadow:
-    8px 8px 16px oklch(0 0 0 / 12%),
-    -8px -8px 16px oklch(1 0 0 / 80%);
+    6px 6px 14px oklch(0 0 0 / 10%),
+    -6px -6px 14px oklch(1 0 0 / 85%),
+    2px 2px 4px oklch(0 0 0 / 5%);
   --surface-shadow-hover:
-    10px 10px 20px oklch(0 0 0 / 15%),
-    -10px -10px 20px oklch(1 0 0 / 90%);
+    8px 8px 18px oklch(0 0 0 / 13%),
+    -8px -8px 18px oklch(1 0 0 / 95%),
+    3px 3px 6px oklch(0 0 0 / 6%);
   --surface-border: none;
-  --surface-radius: 1.25rem;
+  --surface-radius: 1.5rem;
   --surface-inset-shadow:
-    inset 4px 4px 8px oklch(0 0 0 / 10%),
-    inset -4px -4px 8px oklch(1 0 0 / 70%);
+    inset 3px 3px 6px oklch(0 0 0 / 8%),
+    inset -3px -3px 6px oklch(1 0 0 / 65%),
+    inset 1px 1px 2px oklch(0 0 0 / 4%);
   --surface-btn-shadow:
-    4px 4px 8px oklch(0 0 0 / 10%),
-    -4px -4px 8px oklch(1 0 0 / 70%);
+    4px 4px 10px oklch(0 0 0 / 10%),
+    -4px -4px 10px oklch(1 0 0 / 75%),
+    1px 1px 3px oklch(0 0 0 / 5%);
   --surface-btn-shadow-hover:
-    2px 2px 4px oklch(0 0 0 / 8%),
-    -2px -2px 4px oklch(1 0 0 / 60%);
+    3px 3px 7px oklch(0 0 0 / 8%),
+    -3px -3px 7px oklch(1 0 0 / 65%);
 }
 
-.dark[data-style="neumorphism"] {
+.dark[data-style="paper"] {
   --surface-shadow:
-    8px 8px 16px oklch(0 0 0 / 50%),
-    -8px -8px 16px oklch(1 0 0 / 4%);
+    6px 6px 14px oklch(0 0 0 / 50%),
+    -6px -6px 14px oklch(1 0 0 / 3.5%),
+    2px 2px 4px oklch(0 0 0 / 30%);
   --surface-shadow-hover:
-    10px 10px 20px oklch(0 0 0 / 55%),
-    -10px -10px 20px oklch(1 0 0 / 5%);
+    8px 8px 18px oklch(0 0 0 / 55%),
+    -8px -8px 18px oklch(1 0 0 / 4.5%),
+    3px 3px 6px oklch(0 0 0 / 35%);
   --surface-inset-shadow:
-    inset 4px 4px 8px oklch(0 0 0 / 40%),
-    inset -4px -4px 8px oklch(1 0 0 / 3%);
+    inset 3px 3px 6px oklch(0 0 0 / 35%),
+    inset -3px -3px 6px oklch(1 0 0 / 2.5%),
+    inset 1px 1px 2px oklch(0 0 0 / 20%);
   --surface-btn-shadow:
-    4px 4px 8px oklch(0 0 0 / 40%),
-    -4px -4px 8px oklch(1 0 0 / 3%);
+    4px 4px 10px oklch(0 0 0 / 45%),
+    -4px -4px 10px oklch(1 0 0 / 3%),
+    1px 1px 3px oklch(0 0 0 / 25%);
   --surface-btn-shadow-hover:
-    2px 2px 4px oklch(0 0 0 / 35%),
-    -2px -2px 4px oklch(1 0 0 / 2%);
+    3px 3px 7px oklch(0 0 0 / 40%),
+    -3px -3px 7px oklch(1 0 0 / 2.5%);
 }
 
 @layer base {

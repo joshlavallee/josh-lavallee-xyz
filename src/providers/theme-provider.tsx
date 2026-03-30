@@ -1,7 +1,7 @@
 import { createContext, useContext, useState, useEffect, useCallback } from 'react'
 
 export type ColorMode = 'light' | 'dark'
-export type UIStyle = 'flat' | 'glass' | 'neumorphism'
+export type UIStyle = 'flat' | 'glass' | 'paper'
 
 interface ThemeContextValue {
   colorMode: ColorMode
@@ -29,7 +29,8 @@ function getInitialColorMode(): ColorMode {
 function getInitialUIStyle(): UIStyle {
   if (typeof window === 'undefined') return DEFAULT_UI_STYLE
   const stored = localStorage.getItem(UI_STYLE_KEY)
-  if (stored === 'flat' || stored === 'glass' || stored === 'neumorphism') return stored
+  if (stored === 'neumorphism') return 'paper' // migrate old value
+  if (stored === 'flat' || stored === 'glass' || stored === 'paper') return stored
   return DEFAULT_UI_STYLE
 }
 

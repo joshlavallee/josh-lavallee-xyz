@@ -5,7 +5,7 @@ import { cn } from '@/lib/utils'
 const UI_STYLES: { value: UIStyle; label: string; icon: typeof Square }[] = [
   { value: 'flat', label: 'Flat', icon: Square },
   { value: 'glass', label: 'Glass', icon: Layers },
-  { value: 'neumorphism', label: 'Neu', icon: Circle },
+  { value: 'paper', label: 'Paper', icon: Circle },
 ]
 
 export default function ThemeControls() {
