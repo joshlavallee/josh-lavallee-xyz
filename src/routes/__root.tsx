@@ -5,11 +5,12 @@ import {
   createRootRoute,
   HeadContent,
   Scripts,
+  useRouterState,
 } from '@tanstack/react-router'
 import { Canvas } from '@react-three/fiber'
 import Experience from '@/Experience'
 import { CAMERA_SETTINGS, GL_SETTINGS, PIXEL_RATIO } from '@/settings'
-import ThemeProvider from '@/providers/theme-provider'
+import ThemeProvider, { useTheme } from '@/providers/theme-provider'
 import { Dock, ThemeControls } from '@/components'
 import '@/index.css'
 
@@ -55,14 +56,7 @@ function RootDocument({ children }: Readonly<{ children: ReactNode }>) {
       </head>
       <body>
         <ThemeProvider>
-          <Canvas
-            gl={GL_SETTINGS}
-            camera={CAMERA_SETTINGS}
-            dpr={PIXEL_RATIO}
-            className="!fixed !inset-0 !-z-10"
-          >
-            <Experience />
-          </Canvas>
+          <SceneBridge />
           <div className="pointer-events-none relative z-10 [&_a,&_button,&_input,&_textarea,&_select]:pointer-events-auto">
             {children}
           </div>
@@ -72,5 +66,29 @@ function RootDocument({ children }: Readonly<{ children: ReactNode }>) {
         <Scripts />
       </body>
     </html>
+  )
+}
+
+function SceneBridge() {
+  const { colorMode, uiStyle } = useTheme()
+  const routerState = useRouterState()
+  const routePath = routerState.location.pathname
+  const search = routerState.location.search as { photo?: number }
+  const photoIndex = Number(search.photo) || 0
+
+  return (
+    <Canvas
+      gl={GL_SETTINGS}
+      camera={CAMERA_SETTINGS}
+      dpr={PIXEL_RATIO}
+      className="!fixed !inset-0 !-z-10"
+    >
+      <Experience
+        routePath={routePath}
+        colorMode={colorMode}
+        uiStyle={uiStyle}
+        photoIndex={photoIndex}
+      />
+    </Canvas>
   )
 }
