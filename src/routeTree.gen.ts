@@ -9,8 +9,20 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as PlaceholderRouteImport } from './routes/placeholder'
+import { Route as PhotographyRouteImport } from './routes/photography'
 import { Route as IndexRouteImport } from './routes/index'
 
+const PlaceholderRoute = PlaceholderRouteImport.update({
+  id: '/placeholder',
+  path: '/placeholder',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PhotographyRoute = PhotographyRouteImport.update({
+  id: '/photography',
+  path: '/photography',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -19,28 +31,50 @@ const IndexRoute = IndexRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/photography': typeof PhotographyRoute
+  '/placeholder': typeof PlaceholderRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/photography': typeof PhotographyRoute
+  '/placeholder': typeof PlaceholderRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/photography': typeof PhotographyRoute
+  '/placeholder': typeof PlaceholderRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths: '/' | '/photography' | '/placeholder'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to: '/' | '/photography' | '/placeholder'
+  id: '__root__' | '/' | '/photography' | '/placeholder'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  PhotographyRoute: typeof PhotographyRoute
+  PlaceholderRoute: typeof PlaceholderRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/placeholder': {
+      id: '/placeholder'
+      path: '/placeholder'
+      fullPath: '/placeholder'
+      preLoaderRoute: typeof PlaceholderRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/photography': {
+      id: '/photography'
+      path: '/photography'
+      fullPath: '/photography'
+      preLoaderRoute: typeof PhotographyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -53,6 +87,8 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  PhotographyRoute: PhotographyRoute,
+  PlaceholderRoute: PlaceholderRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

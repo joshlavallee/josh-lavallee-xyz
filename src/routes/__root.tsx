@@ -6,6 +6,9 @@ import {
   HeadContent,
   Scripts,
 } from '@tanstack/react-router'
+import { Canvas } from '@react-three/fiber'
+import Experience from '@/Experience'
+import { CAMERA_SETTINGS, GL_SETTINGS, PIXEL_RATIO } from '@/settings'
 import ThemeProvider from '@/providers/theme-provider'
 import { ThemeControls } from '@/components'
 import '@/index.css'
@@ -52,7 +55,17 @@ function RootDocument({ children }: Readonly<{ children: ReactNode }>) {
       </head>
       <body>
         <ThemeProvider>
-          {children}
+          <Canvas
+            gl={GL_SETTINGS}
+            camera={CAMERA_SETTINGS}
+            dpr={PIXEL_RATIO}
+            className="!fixed !inset-0 !-z-10"
+          >
+            <Experience />
+          </Canvas>
+          <div className="pointer-events-none relative z-10 [&_a,&_button,&_input,&_textarea,&_select]:pointer-events-auto">
+            {children}
+          </div>
           <ThemeControls />
         </ThemeProvider>
         <Scripts />
