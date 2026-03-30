@@ -7,6 +7,7 @@ import {
   Scripts,
 } from '@tanstack/react-router'
 import ThemeProvider from '@/providers/theme-provider'
+import { ThemeControls } from '@/components'
 import '@/index.css'
 
 const ANTI_FLASH_SCRIPT = `
@@ -52,6 +53,7 @@ function RootDocument({ children }: Readonly<{ children: ReactNode }>) {
       <body>
         <ThemeProvider>
           {children}
+          <ThemeControls />
         </ThemeProvider>
         <Scripts />
       </body>
