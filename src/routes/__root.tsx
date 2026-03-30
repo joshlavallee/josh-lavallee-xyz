@@ -6,7 +6,19 @@ import {
   HeadContent,
   Scripts,
 } from '@tanstack/react-router'
+import ThemeProvider from '@/providers/theme-provider'
 import '@/index.css'
+
+const ANTI_FLASH_SCRIPT = `
+(function() {
+  try {
+    var mode = localStorage.getItem('theme-color-mode');
+    var style = localStorage.getItem('theme-ui-style');
+    if (mode === 'dark' || (!mode)) document.documentElement.classList.add('dark');
+    document.documentElement.setAttribute('data-style', style || 'flat');
+  } catch(e) {}
+})();
+`
 
 export const Route = createRootRoute({
   head: () => ({
@@ -32,12 +44,15 @@ function RootComponent() {
 
 function RootDocument({ children }: Readonly<{ children: ReactNode }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <head>
+        <script dangerouslySetInnerHTML={{ __html: ANTI_FLASH_SCRIPT }} />
         <HeadContent />
       </head>
       <body>
-        {children}
+        <ThemeProvider>
+          {children}
+        </ThemeProvider>
         <Scripts />
       </body>
     </html>
