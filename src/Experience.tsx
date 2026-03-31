@@ -1,4 +1,5 @@
 import { ParticlePhotography } from '@/features/photography'
+import { AboutScene } from '@/features/about'
 import type { ColorMode, UIStyle } from '@/providers/theme-provider'
 
 interface ExperienceProps {
@@ -17,6 +18,9 @@ export default function Experience({ routePath, colorMode, uiStyle, photoIndex }
           uiStyle={uiStyle}
           photoIndex={photoIndex}
         />
+      )}
+      {routePath === '/' && (
+        <AboutScene colorMode={colorMode} uiStyle={uiStyle} />
       )}
     </>
   )
