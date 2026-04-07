@@ -28,3 +28,9 @@ yarn.lock
 *.sln
 *.sw?
 .env
+
+# Worktrees
+.worktrees
+
+# Superpowers
+.superpowers
