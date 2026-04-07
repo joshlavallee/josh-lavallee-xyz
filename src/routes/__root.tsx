@@ -12,7 +12,7 @@ import Experience from '@/Experience'
 import { CAMERA_SETTINGS, GL_SETTINGS, PIXEL_RATIO } from '@/settings'
 import ThemeProvider, { useTheme } from '@/providers/theme-provider'
 import AudioProvider from '@/providers/audio-provider'
-import { Dock, SettingsPanel } from '@/components'
+import { BurgerNav, SettingsPanel } from '@/components'
 import '@/index.css'
 
 const ANTI_FLASH_SCRIPT = `
@@ -63,7 +63,7 @@ function RootDocument({ children }: Readonly<{ children: ReactNode }>) {
               {children}
             </div>
             <SettingsPanel />
-            <Dock />
+            <BurgerNav />
           </AudioProvider>
         </ThemeProvider>
         <Scripts />
