@@ -10,7 +10,16 @@ interface HomeSceneProps {
 export default function HomeScene({ colorMode, uiStyle }: HomeSceneProps) {
   return (
     <>
-      <OrthographicCamera makeDefault position={[0, 0, 1]} />
+      <OrthographicCamera
+        makeDefault
+        left={-1}
+        right={1}
+        top={1}
+        bottom={-1}
+        near={0}
+        far={2}
+        position={[0, 0, 1]}
+      />
       <FluidShader colorMode={colorMode} uiStyle={uiStyle} />
     </>
   )
