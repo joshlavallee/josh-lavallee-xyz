@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as PlaceholderRouteImport } from './routes/placeholder'
 import { Route as PhotographyRouteImport } from './routes/photography'
+import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
 
 const PlaceholderRoute = PlaceholderRouteImport.update({
@@ -23,6 +24,11 @@ const PhotographyRoute = PhotographyRouteImport.update({
   path: '/photography',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AboutRoute = AboutRouteImport.update({
+  id: '/about',
+  path: '/about',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -31,30 +37,34 @@ const IndexRoute = IndexRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/about': typeof AboutRoute
   '/photography': typeof PhotographyRoute
   '/placeholder': typeof PlaceholderRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/about': typeof AboutRoute
   '/photography': typeof PhotographyRoute
   '/placeholder': typeof PlaceholderRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/about': typeof AboutRoute
   '/photography': typeof PhotographyRoute
   '/placeholder': typeof PlaceholderRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/photography' | '/placeholder'
+  fullPaths: '/' | '/about' | '/photography' | '/placeholder'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/photography' | '/placeholder'
-  id: '__root__' | '/' | '/photography' | '/placeholder'
+  to: '/' | '/about' | '/photography' | '/placeholder'
+  id: '__root__' | '/' | '/about' | '/photography' | '/placeholder'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AboutRoute: typeof AboutRoute
   PhotographyRoute: typeof PhotographyRoute
   PlaceholderRoute: typeof PlaceholderRoute
 }
@@ -75,6 +85,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PhotographyRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/about': {
+      id: '/about'
+      path: '/about'
+      fullPath: '/about'
+      preLoaderRoute: typeof AboutRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -87,6 +104,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AboutRoute: AboutRoute,
   PhotographyRoute: PhotographyRoute,
   PlaceholderRoute: PlaceholderRoute,
 }
