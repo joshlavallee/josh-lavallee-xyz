@@ -11,6 +11,7 @@ import { Canvas } from '@react-three/fiber'
 import Experience from '@/Experience'
 import { CAMERA_SETTINGS, GL_SETTINGS, PIXEL_RATIO } from '@/settings'
 import ThemeProvider, { useTheme } from '@/providers/theme-provider'
+import AudioProvider from '@/providers/audio-provider'
 import { Dock, ThemeControls } from '@/components'
 import '@/index.css'
 
@@ -56,12 +57,14 @@ function RootDocument({ children }: Readonly<{ children: ReactNode }>) {
       </head>
       <body>
         <ThemeProvider>
-          <SceneBridge />
-          <div className="pointer-events-none relative z-10 [&_a,&_button,&_input,&_textarea,&_select]:pointer-events-auto">
-            {children}
-          </div>
-          <ThemeControls />
-          <Dock />
+          <AudioProvider>
+            <SceneBridge />
+            <div className="pointer-events-none relative z-10 [&_a,&_button,&_input,&_textarea,&_select]:pointer-events-auto">
+              {children}
+            </div>
+            <ThemeControls />
+            <Dock />
+          </AudioProvider>
         </ThemeProvider>
         <Scripts />
       </body>
