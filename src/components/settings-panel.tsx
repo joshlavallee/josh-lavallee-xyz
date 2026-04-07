@@ -36,7 +36,7 @@ export default function SettingsPanel() {
       <button
         onClick={() => setIsOpen(!isOpen)}
         className={cn(
-          'surface surface-btn flex h-10 w-10 items-center justify-center text-foreground/80 transition-all hover:text-foreground',
+          'surface surface-btn flex h-10 w-10 items-center justify-center text-foreground/80 transition-all hover:rotate-45 hover:text-foreground',
           isOpen && 'rotate-90'
         )}
         style={{ transition: 'transform 0.3s ease, box-shadow 0.2s ease' }}
@@ -56,10 +56,7 @@ export default function SettingsPanel() {
         )}
       >
         {/* Mode section */}
-        <div
-          className="transition-all duration-200"
-          style={{ transitionDelay: isOpen ? '0ms' : '0ms' }}
-        >
+        <div className="transition-all duration-200">
           <span className="mb-2 block text-[10px] font-medium uppercase tracking-widest text-muted-foreground">
             Mode
           </span>
@@ -142,7 +139,7 @@ export default function SettingsPanel() {
                 step="0.01"
                 value={volume}
                 onChange={(e) => setVolume(parseFloat(e.target.value))}
-                className="surface-input h-1 w-full cursor-pointer appearance-none [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-primary"
+                className="surface-input h-1 w-full cursor-pointer appearance-none [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-primary [&::-moz-range-thumb]:h-3 [&::-moz-range-thumb]:w-3 [&::-moz-range-thumb]:appearance-none [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:border-0 [&::-moz-range-thumb]:bg-primary [&::-moz-range-track]:h-1 [&::-moz-range-track]:rounded [&::-moz-range-track]:bg-muted"
                 aria-label="Volume"
               />
               <Volume2 className="size-3 shrink-0 text-muted-foreground" />
