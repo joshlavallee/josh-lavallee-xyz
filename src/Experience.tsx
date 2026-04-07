@@ -19,7 +19,7 @@ export default function Experience({ routePath, colorMode, uiStyle, photoIndex }
           photoIndex={photoIndex}
         />
       )}
-      {routePath === '/' && (
+      {routePath === '/about' && (
         <AboutScene colorMode={colorMode} uiStyle={uiStyle} />
       )}
     </>
