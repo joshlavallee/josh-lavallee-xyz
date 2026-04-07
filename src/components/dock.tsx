@@ -1,10 +1,11 @@
 import { useRef, useState, useCallback } from 'react'
 import { Link, useRouterState } from '@tanstack/react-router'
-import { User, Camera, Box } from 'lucide-react'
+import { Home, PawPrint, Camera, Box } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 const DOCK_ITEMS = [
-  { to: '/' as const, label: 'About Me', icon: User },
+  { to: '/' as const, label: 'Home', icon: Home },
+  { to: '/about' as const, label: 'About', icon: PawPrint },
   { to: '/photography' as const, label: 'Photography', icon: Camera },
   { to: '/placeholder' as const, label: 'Placeholder', icon: Box },
 ]
@@ -75,7 +76,7 @@ const DockItem = forwardRef<
   {
     to: string
     label: string
-    icon: typeof User
+    icon: typeof Home
     isActive: boolean
     scale: number
   }
