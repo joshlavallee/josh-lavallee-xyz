@@ -1,36 +1,29 @@
 uniform float uColorMode;
 uniform vec3 uThemeTint;
+uniform vec3 uColorLow;
+uniform vec3 uColorMid;
+uniform vec3 uColorHigh;
 
 varying float vDisplacement;
 
-vec3 displacementColor(float d) {
+void main() {
   // Normalize displacement to 0-1 range
-  float t = clamp(d / 2.0, 0.0, 1.0);
+  float t = clamp(abs(vDisplacement) / 2.5, 0.0, 1.0);
 
-  // Three-stop color ramp: cyan -> purple -> hot pink
-  vec3 cyan = vec3(0.13, 0.88, 0.83);
-  vec3 purple = vec3(0.55, 0.24, 0.78);
-  vec3 hotPink = vec3(1.0, 0.2, 0.6);
-
+  // Three-stop color ramp
   vec3 color;
   if (t < 0.5) {
-    color = mix(cyan, purple, t / 0.5);
+    color = mix(uColorLow, uColorMid, t / 0.5);
   } else {
-    color = mix(purple, hotPink, (t - 0.5) / 0.5);
+    color = mix(uColorMid, uColorHigh, (t - 0.5) / 0.5);
   }
 
-  return color;
-}
-
-void main() {
-  vec3 color = displacementColor(abs(vDisplacement));
-
   // Glow: brighter at higher displacement
-  float glow = mix(0.4, 1.0, clamp(abs(vDisplacement) / 2.0, 0.0, 1.0));
+  float glow = mix(0.35, 1.0, t);
 
-  // Light mode: increase base brightness, slight desaturation
-  float baseBrightness = mix(0.0, 0.2, uColorMode);
-  glow = mix(glow, max(glow, 0.6), uColorMode);
+  // Light mode: increase base brightness
+  float baseBrightness = mix(0.0, 0.15, uColorMode);
+  glow = mix(glow, max(glow, 0.55), uColorMode);
 
   color *= glow;
   color += baseBrightness;
