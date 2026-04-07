@@ -4,7 +4,7 @@ import * as THREE from 'three'
 import type { ParticleData } from '../types'
 import vertexShader from '../shaders/particle.vert.glsl?raw'
 import fragmentShader from '../shaders/particle.frag.glsl?raw'
-import noiseGlsl from '../shaders/noise.glsl?raw'
+import noiseGlsl from '@/shaders/noise.glsl?raw'
 
 const MAX_PARTICLES = 60000
 const LERP_SPEED = 4.0
