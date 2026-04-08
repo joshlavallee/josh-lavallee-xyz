@@ -47,7 +47,7 @@ export default function BurgerNav() {
           aria-label={isOpen ? 'Close menu' : 'Open menu'}
           aria-expanded={isOpen}
         >
-          {isOpen ? <X className="size-4" /> : <Menu className="size-4" />}
+          {isOpen ? <X className="size-6" /> : <Menu className="size-6" />}
         </button>
 
         <span className="text-[11px] font-medium uppercase tracking-[2px] text-muted-foreground">
@@ -84,7 +84,7 @@ export default function BurgerNav() {
               >
                 <Icon
                   className={cn(
-                    'size-4 transition-colors',
+                    'size-5 transition-colors',
                     isActive ? 'text-primary' : 'text-foreground/70'
                   )}
                 />

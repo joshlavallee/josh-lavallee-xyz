@@ -43,7 +43,7 @@ export default function ShaderControls() {
             className="flex h-[52px] w-[52px] shrink-0 items-center justify-center text-foreground/60 transition-all hover:text-foreground"
             aria-label={isOpen ? 'Close shader controls' : 'Open shader controls'}
           >
-            <SlidersHorizontal className={cn('size-3.5 transition-transform duration-300', isOpen && 'rotate-90')} />
+            <SlidersHorizontal className={cn('size-6 transition-transform duration-300', isOpen && 'rotate-90')} />
           </button>
         </div>
 
