@@ -48,7 +48,7 @@ export default function SettingsPanel() {
             aria-label="Settings"
             aria-expanded={isOpen}
           >
-            <Settings className="size-6" />
+            <Settings className="size-5" />
           </button>
         </div>
 

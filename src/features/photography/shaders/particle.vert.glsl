@@ -17,6 +17,9 @@ void main() {
 
   vec3 pos = position;
 
+  // Point size in pixels (orthographic camera, no perspective scaling)
+  gl_PointSize = aSize * uPointSize;
+
   // Map particle position to touch texture UV space
   vec2 touchUV = vec2(
     (pos.x / (uImageAspect * 0.5)) * 0.5 + 0.5,
@@ -24,27 +27,19 @@ void main() {
   );
   float touchIntensity = texture2D(uTouchTexture, touchUV).r;
 
-  // Scatter particles in XYZ
+  // Scatter particles in XY (Z is invisible with orthographic camera)
   float angle = aRandom * 6.28318;
-  float zAngle = aRandom * 3.14159;
   float scatterDist = touchIntensity * uDisplacementScale * 0.03;
   pos.x += cos(angle) * scatterDist;
   pos.y += sin(angle) * scatterDist;
-  pos.z += cos(zAngle) * scatterDist * 0.5;
 
-  // Idle drift: floaty, suspended-in-liquid feel
-  float noiseX = snoise(vec2(aRandom * 50.0, uTime * 0.1));
-  float noiseY = snoise(vec2(aRandom * 50.0 + 100.0, uTime * 0.1));
-  float noiseZ = snoise(vec2(aRandom * 50.0 + 200.0, uTime * 0.1));
-  pos.x += noiseX * 0.012;
-  pos.y += noiseY * 0.012;
-  pos.z += noiseZ * 0.008;
+  // Idle noise animation in XY
+  float noiseX = snoise(vec2(aRandom * 50.0, uTime * 0.15));
+  float noiseY = snoise(vec2(aRandom * 50.0 + 100.0, uTime * 0.15));
+  pos.x += noiseX * 0.002;
+  pos.y += noiseY * 0.002;
 
   vec4 mvPosition = modelViewMatrix * vec4(pos, 1.0);
-
-  // Perspective point size attenuation
-  gl_PointSize = aSize * uPointSize * (300.0 / -mvPosition.z);
-
   gl_Position = projectionMatrix * mvPosition;
 
   // Slight fade on scattered particles

@@ -3,11 +3,6 @@ import { useThree, useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
 import TouchTexture from '../lib/TouchTexture'
 
-const raycaster = new THREE.Raycaster()
-const ndcVec = new THREE.Vector2()
-const hitPlane = new THREE.Plane(new THREE.Vector3(0, 0, 1), 0)
-const intersectPoint = new THREE.Vector3()
-
 export default function useTouchInteraction(imageAspect: number) {
   const touchTextureRef = useRef<TouchTexture | null>(null)
   const { gl, camera, size } = useThree()
@@ -21,23 +16,26 @@ export default function useTouchInteraction(imageAspect: number) {
     const touchTexture = touchTextureRef.current!
 
     function handlePointerMove(e: PointerEvent) {
+      // Convert screen coordinates to normalized 0-1 space matching the particle grid
       const rect = domElement.getBoundingClientRect()
       const ndcX = ((e.clientX - rect.left) / rect.width) * 2 - 1
       const ndcY = -((e.clientY - rect.top) / rect.height) * 2 + 1
 
-      // Raycast against a plane at Z=0 facing the camera
-      ndcVec.set(ndcX, ndcY)
-      raycaster.setFromCamera(ndcVec, camera)
-      const hit = raycaster.ray.intersectPlane(hitPlane, intersectPoint)
+      // For orthographic camera, NDC maps directly to world space
+      // The particle grid spans from -imageAspect/2 to +imageAspect/2 on X
+      // and -0.5 to +0.5 on Y
+      // Map NDC to the particle grid's UV space (0-1)
+      const cam = camera as THREE.OrthographicCamera
+      const viewWidth = (cam.right - cam.left)
+      const viewHeight = (cam.top - cam.bottom)
+      const worldX = ndcX * viewWidth / 2
+      const worldY = ndcY * viewHeight / 2
 
-      if (hit) {
-        // Map world XY to particle grid UV space (0-1)
-        const uvX = (intersectPoint.x / (imageAspect * 0.5)) * 0.5 + 0.5
-        const uvY = intersectPoint.y + 0.5
+      const uvX = (worldX / (imageAspect * 0.5)) * 0.5 + 0.5
+      const uvY = worldY + 0.5
 
-        if (uvX >= 0 && uvX <= 1 && uvY >= 0 && uvY <= 1) {
-          touchTexture.addTouch(uvX, uvY)
-        }
+      if (uvX >= 0 && uvX <= 1 && uvY >= 0 && uvY <= 1) {
+        touchTexture.addTouch(uvX, uvY)
       }
     }
 

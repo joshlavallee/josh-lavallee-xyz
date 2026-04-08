@@ -35,7 +35,7 @@ function ParticlePeg() {
           <ChevronLeft className="size-4 text-foreground" />
         </button>
 
-        <div className="flex flex-col items-center gap-0.5">
+        <div className="flex w-64 flex-col items-center gap-0.5">
           <span className="text-sm font-medium text-foreground">
             {currentPhoto.title}
           </span>

@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { PerspectiveCamera, OrbitControls } from '@react-three/drei'
+import { OrthographicCamera } from '@react-three/drei'
 import { useThree } from '@react-three/fiber'
 import type { SceneProps, ParticleData } from '../types'
 import { PHOTOS } from '../photos'
@@ -49,27 +49,36 @@ export default function ParticlePhotography({ colorMode, uiStyle, photoIndex }: 
 
   const settings = THEME_SETTINGS[uiStyle]
 
-  // Point size for perspective camera
-  // Base size scaled by viewport height for consistent appearance
-  const pointSize = (size.height / 800) * 1.2
+  // Contain-fit: show full image, preserving its aspect ratio
+  const viewportAspect = size.width / size.height
+  let cameraHalfW: number, cameraHalfH: number
+  if (viewportAspect > imgAspect) {
+    // Viewport wider than image: fit height, letterbox sides
+    cameraHalfH = 0.5
+    cameraHalfW = cameraHalfH * viewportAspect
+  } else {
+    // Viewport taller than image: fit width, letterbox top/bottom
+    cameraHalfW = imgAspect / 2
+    cameraHalfH = cameraHalfW / viewportAspect
+  }
+
+  // Point size calculation
+  const particlesAcross = Math.sqrt(particleData.count * imgAspect)
+  const pixelSpacing = imgAspect / particlesAcross
+  const worldToPixels = size.width / (cameraHalfW * 2)
+  const pointSize = pixelSpacing * worldToPixels * 0.85
 
   return (
     <>
-      <PerspectiveCamera
+      <OrthographicCamera
         makeDefault
-        fov={50}
+        position={[0, 0, 5]}
+        left={-cameraHalfW}
+        right={cameraHalfW}
+        top={cameraHalfH}
+        bottom={-cameraHalfH}
         near={0.1}
         far={100}
-        position={[0, 0, 1.5]}
-      />
-      <OrbitControls
-        enablePan={false}
-        enableDamping
-        dampingFactor={0.05}
-        minDistance={0.8}
-        maxDistance={4}
-        minPolarAngle={Math.PI / 4}
-        maxPolarAngle={3 * Math.PI / 4}
       />
       <ParticleSystem
         data={particleData}

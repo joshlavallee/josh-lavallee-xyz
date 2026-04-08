@@ -47,7 +47,7 @@ export default function BurgerNav() {
           aria-label={isOpen ? 'Close menu' : 'Open menu'}
           aria-expanded={isOpen}
         >
-          {isOpen ? <X className="size-6" /> : <Menu className="size-6" />}
+          {isOpen ? <X className="size-5" /> : <Menu className="size-5" />}
         </button>
 
         <span className="text-[11px] font-medium uppercase tracking-[2px] text-muted-foreground">
