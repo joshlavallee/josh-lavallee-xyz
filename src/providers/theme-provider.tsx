@@ -48,15 +48,20 @@ function applyUIStyle(style: UIStyle) {
 }
 
 export default function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [colorMode, setColorModeState] = useState<ColorMode>(getInitialColorMode)
-  const [uiStyle, setUIStyleState] = useState<UIStyle>(getInitialUIStyle)
+  const [colorMode, setColorModeState] = useState<ColorMode>(DEFAULT_COLOR_MODE)
+  const [uiStyle, setUIStyleState] = useState<UIStyle>(DEFAULT_UI_STYLE)
 
-  // Sync DOM on mount (needed for SSR hydration where the anti-flash script
-  // already set attributes, but React state needs to match)
+  // Sync React state from localStorage after hydration.
+  // The anti-flash script already applied the correct DOM attributes,
+  // so there's no visual flash — this just catches React state up.
   useEffect(() => {
-    applyColorMode(colorMode)
-    applyUIStyle(uiStyle)
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+    const storedMode = getInitialColorMode()
+    const storedStyle = getInitialUIStyle()
+    setColorModeState(storedMode)
+    setUIStyleState(storedStyle)
+    applyColorMode(storedMode)
+    applyUIStyle(storedStyle)
+  }, [])
 
   const setColorMode = useCallback((mode: ColorMode) => {
     setColorModeState(mode)
