@@ -26,7 +26,7 @@ function ParticlePeg() {
   useEffect(() => {
     function handleClick(e: MouseEvent) {
       const target = e.target as HTMLElement
-      if (target.closest('button, a, input, [data-no-advance]')) return
+      if (target.tagName !== 'CANVAS') return
       advance()
     }
     function handleKeyDown(e: KeyboardEvent) {
