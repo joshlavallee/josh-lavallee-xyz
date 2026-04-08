@@ -1,6 +1,7 @@
 import { ParticlePhotography } from '@/features/photography'
 import { AboutScene } from '@/features/about'
 import { HomeScene } from '@/features/home'
+import { PlanetScene } from '@/features/planet'
 import type { ColorMode, UIStyle } from '@/providers/theme-provider'
 
 interface ExperienceProps {
@@ -25,6 +26,9 @@ export default function Experience({ routePath, colorMode, uiStyle, photoIndex }
           uiStyle={uiStyle}
           photoIndex={photoIndex}
         />
+      )}
+      {routePath === '/placeholder' && (
+        <PlanetScene colorMode={colorMode} uiStyle={uiStyle} />
       )}
     </>
   )
