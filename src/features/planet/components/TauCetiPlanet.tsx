@@ -26,7 +26,8 @@ export default function TauCetiPlanet() {
 
     const u = materialRef.current.uniforms
 
-    u.uTime.value += delta * 0.3
+    // Sluggish, heavy atmosphere - barely perceptible movement
+    u.uTime.value += delta
     u.uSwirlIntensity.value = planetSettings.swirlIntensity
     u.uOrangeIntensity.value = planetSettings.orangeIntensity
 
