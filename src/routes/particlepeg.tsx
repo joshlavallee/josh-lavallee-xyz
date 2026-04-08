@@ -3,14 +3,14 @@ import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { PHOTOS } from '@/features/photography'
 
-export const Route = createFileRoute('/photography')({
+export const Route = createFileRoute('/particlepeg')({
   validateSearch: (search: Record<string, unknown>) => ({
     photo: Number(search.photo) || 0,
   }),
-  component: Photography,
+  component: ParticlePeg,
 })
 
-function Photography() {
+function ParticlePeg() {
   const { photo } = Route.useSearch()
   const navigate = useNavigate()
   const clampedIndex = Math.max(0, Math.min(photo, PHOTOS.length - 1))
@@ -18,7 +18,7 @@ function Photography() {
 
   function goTo(index: number) {
     const next = Math.max(0, Math.min(index, PHOTOS.length - 1))
-    navigate({ to: '/photography', search: { photo: next } })
+    navigate({ to: '/particlepeg', search: { photo: next } })
   }
 
   return (

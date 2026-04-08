@@ -48,7 +48,8 @@ export async function imageToParticles(
       const px = (x / sampleWidth - 0.5) * imageAspect
       const py = 0.5 - y / sampleHeight
 
-      tempPositions.push(px, py, 0)
+      const pz = brightness * 0.4 + (Math.random() - 0.5) * 0.15
+      tempPositions.push(px, py, pz)
       tempColors.push(r, g, b)
       tempSizes.push(brightness)
       tempRandoms.push(Math.random())

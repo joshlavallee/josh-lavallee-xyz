@@ -1,12 +1,12 @@
 import { useState, useRef, useEffect } from 'react'
 import { Link, useRouterState } from '@tanstack/react-router'
-import { Home, PawPrint, Camera, Box, Menu, X } from 'lucide-react'
+import { Home, PawPrint, Waypoints, Box, Menu, X } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 const NAV_ITEMS = [
   { to: '/' as const, label: 'Home', icon: Home },
   { to: '/about' as const, label: 'About', icon: PawPrint },
-  { to: '/photography' as const, label: 'Photography', icon: Camera },
+  { to: '/particlepeg' as const, label: 'Particle Peg', icon: Waypoints },
   { to: '/placeholder' as const, label: 'Placeholder', icon: Box },
 ]
 

@@ -10,7 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as PlaceholderRouteImport } from './routes/placeholder'
-import { Route as PhotographyRouteImport } from './routes/photography'
+import { Route as ParticlepegRouteImport } from './routes/particlepeg'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
 
@@ -19,9 +19,9 @@ const PlaceholderRoute = PlaceholderRouteImport.update({
   path: '/placeholder',
   getParentRoute: () => rootRouteImport,
 } as any)
-const PhotographyRoute = PhotographyRouteImport.update({
-  id: '/photography',
-  path: '/photography',
+const ParticlepegRoute = ParticlepegRouteImport.update({
+  id: '/particlepeg',
+  path: '/particlepeg',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AboutRoute = AboutRouteImport.update({
@@ -38,34 +38,34 @@ const IndexRoute = IndexRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
-  '/photography': typeof PhotographyRoute
+  '/particlepeg': typeof ParticlepegRoute
   '/placeholder': typeof PlaceholderRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
-  '/photography': typeof PhotographyRoute
+  '/particlepeg': typeof ParticlepegRoute
   '/placeholder': typeof PlaceholderRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
-  '/photography': typeof PhotographyRoute
+  '/particlepeg': typeof ParticlepegRoute
   '/placeholder': typeof PlaceholderRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/about' | '/photography' | '/placeholder'
+  fullPaths: '/' | '/about' | '/particlepeg' | '/placeholder'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/about' | '/photography' | '/placeholder'
-  id: '__root__' | '/' | '/about' | '/photography' | '/placeholder'
+  to: '/' | '/about' | '/particlepeg' | '/placeholder'
+  id: '__root__' | '/' | '/about' | '/particlepeg' | '/placeholder'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AboutRoute: typeof AboutRoute
-  PhotographyRoute: typeof PhotographyRoute
+  ParticlepegRoute: typeof ParticlepegRoute
   PlaceholderRoute: typeof PlaceholderRoute
 }
 
@@ -78,11 +78,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PlaceholderRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/photography': {
-      id: '/photography'
-      path: '/photography'
-      fullPath: '/photography'
-      preLoaderRoute: typeof PhotographyRouteImport
+    '/particlepeg': {
+      id: '/particlepeg'
+      path: '/particlepeg'
+      fullPath: '/particlepeg'
+      preLoaderRoute: typeof ParticlepegRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/about': {
@@ -105,7 +105,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
-  PhotographyRoute: PhotographyRoute,
+  ParticlepegRoute: ParticlepegRoute,
   PlaceholderRoute: PlaceholderRoute,
 }
 export const routeTree = rootRouteImport
