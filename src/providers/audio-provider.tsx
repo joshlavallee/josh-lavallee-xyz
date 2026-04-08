@@ -1,15 +1,23 @@
 import { createContext, useContext, useRef, useState, useCallback } from 'react'
 
+export const TRACKS = [
+  { id: 'relax', label: 'Relax', src: '/audio/relax.mp3' },
+  { id: 'chill', label: 'Chill', src: '/audio/chill.mp3' },
+]
+
 interface AudioContextValue {
   isPlaying: boolean
   volume: number
+  track: string
   toggle: () => void
   setVolume: (v: number) => void
+  setTrack: (id: string) => void
 }
 
 const AudioContext = createContext<AudioContextValue | null>(null)
 
 const VOLUME_KEY = 'audio-volume'
+const TRACK_KEY = 'audio-track'
 const FADE_DURATION = 500
 
 function getInitialVolume(): number {
@@ -22,21 +30,33 @@ function getInitialVolume(): number {
   return 0.5
 }
 
+function getInitialTrack(): string {
+  if (typeof window === 'undefined') return TRACKS[0].id
+  const stored = localStorage.getItem(TRACK_KEY)
+  if (stored && TRACKS.some((t) => t.id === stored)) return stored
+  return TRACKS[0].id
+}
+
+function getTrackSrc(id: string): string {
+  return TRACKS.find((t) => t.id === id)?.src ?? TRACKS[0].src
+}
+
 export default function AudioProvider({ children }: { children: React.ReactNode }) {
   const audioRef = useRef<HTMLAudioElement | null>(null)
   const fadeRef = useRef<number | null>(null)
   const [isPlaying, setIsPlaying] = useState(false)
   const [volume, setVolumeState] = useState(getInitialVolume)
+  const [track, setTrackState] = useState(getInitialTrack)
 
   const getAudio = useCallback(() => {
     if (!audioRef.current) {
-      const audio = new Audio('/audio/ambient.mp3')
+      const audio = new Audio(getTrackSrc(track))
       audio.loop = true
       audio.volume = 0
       audioRef.current = audio
     }
     return audioRef.current
-  }, [])
+  }, [track])
 
   const fade = useCallback((audio: HTMLAudioElement, targetVolume: number, onComplete?: () => void) => {
     if (fadeRef.current !== null) cancelAnimationFrame(fadeRef.current)
@@ -88,8 +108,32 @@ export default function AudioProvider({ children }: { children: React.ReactNode 
     }
   }, [isPlaying])
 
+  const setTrack = useCallback((id: string) => {
+    if (id === track) return
+    const src = getTrackSrc(id)
+    setTrackState(id)
+    localStorage.setItem(TRACK_KEY, id)
+
+    const audio = audioRef.current
+    if (audio && isPlaying) {
+      // Crossfade: fade out, swap src, fade in
+      fade(audio, 0, () => {
+        audio.src = src
+        audio.loop = true
+        audio.volume = 0
+        audio.play().then(() => {
+          fade(audio, volume)
+        }).catch(() => {})
+      })
+    } else if (audio) {
+      // Not playing: just swap the source
+      audio.src = src
+      audio.loop = true
+    }
+  }, [track, isPlaying, volume, fade])
+
   return (
-    <AudioContext value={{ isPlaying, volume, toggle, setVolume }}>
+    <AudioContext value={{ isPlaying, volume, track, toggle, setVolume, setTrack }}>
       {children}
     </AudioContext>
   )
