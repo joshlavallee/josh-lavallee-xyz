@@ -442,6 +442,7 @@ body {
     box-shadow: var(--surface-btn-shadow);
     border-radius: var(--surface-radius);
     transition: box-shadow 0.2s ease, transform 0.1s ease;
+    cursor: pointer;
   }
   .surface-btn:hover {
     box-shadow: var(--surface-btn-shadow-hover);

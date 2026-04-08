@@ -40,7 +40,7 @@ export default function BurgerNav() {
         <button
           onClick={() => setIsOpen(!isOpen)}
           className={cn(
-            'surface surface-btn flex h-10 w-10 items-center justify-center text-foreground/80 transition-all hover:text-foreground',
+            'surface surface-btn flex h-[52px] w-[52px] items-center justify-center text-foreground/80 transition-all hover:text-foreground',
             isOpen && 'rotate-90'
           )}
           style={{ transition: 'transform 0.3s ease, box-shadow 0.2s ease' }}
@@ -56,7 +56,7 @@ export default function BurgerNav() {
       </div>
 
       {/* Nav items */}
-      <div className="absolute top-[52px] left-0 flex flex-col gap-1">
+      <div className="absolute top-[64px] left-0 flex flex-col gap-1">
         {NAV_ITEMS.map((item, index) => {
           const isActive = currentPath === item.to
           const Icon = item.icon
@@ -71,7 +71,7 @@ export default function BurgerNav() {
             >
               <div
                 className={cn(
-                  'flex h-10 w-10 items-center justify-center transition-all duration-200',
+                  'flex h-[52px] w-[52px] items-center justify-center transition-all duration-200',
                   isActive ? 'surface-btn bg-primary/10' : 'surface-btn bg-background/50',
                   isOpen
                     ? 'translate-y-0 opacity-100'

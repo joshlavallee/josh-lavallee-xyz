@@ -36,7 +36,7 @@ export default function SettingsPanel() {
       <button
         onClick={() => setIsOpen(!isOpen)}
         className={cn(
-          'surface surface-btn flex h-10 w-10 items-center justify-center text-foreground/80 transition-all hover:rotate-45 hover:text-foreground',
+          'surface surface-btn flex h-[52px] w-[52px] items-center justify-center text-foreground/80 transition-all hover:rotate-45 hover:text-foreground',
           isOpen && 'rotate-90'
         )}
         style={{ transition: 'transform 0.3s ease, box-shadow 0.2s ease' }}

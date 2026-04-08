@@ -32,7 +32,7 @@ export default function ShaderControls() {
       {/* Toggle button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="surface surface-btn flex h-8 w-8 items-center justify-center text-foreground/60 transition-all hover:text-foreground"
+        className="surface surface-btn flex h-[42px] w-[42px] items-center justify-center text-foreground/60 transition-all hover:text-foreground"
         style={{ transition: 'box-shadow 0.2s ease' }}
         aria-label={isOpen ? 'Close shader controls' : 'Open shader controls'}
       >
