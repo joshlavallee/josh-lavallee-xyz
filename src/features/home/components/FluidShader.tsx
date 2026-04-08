@@ -13,8 +13,8 @@ const THEME_TINTS: Record<UIStyle, [number, number, number]> = {
   flat: [0.0, 0.0, 0.0],
 }
 
-const GRID_SIZE = 24
-const GRID_SEGMENTS = 160
+const GRID_SIZE = 50
+const GRID_SEGMENTS = 200
 
 // Reusable objects to avoid per-frame allocation
 const raycaster = new THREE.Raycaster()
@@ -67,8 +67,9 @@ export default function FluidShader({ colorMode, uiStyle }: FluidShaderProps) {
     const hit = raycaster.ray.intersectPlane(groundPlane, intersectPoint)
 
     if (hit) {
+      // Negate Z: PlaneGeometry rotated -PI/2 around X maps local Y to world -Z
       mouseRef.current.x += (intersectPoint.x - mouseRef.current.x) * 0.05
-      mouseRef.current.y += (intersectPoint.z - mouseRef.current.y) * 0.05
+      mouseRef.current.y += (-intersectPoint.z - mouseRef.current.y) * 0.05
     }
     u.uMouse.value.copy(mouseRef.current)
 
