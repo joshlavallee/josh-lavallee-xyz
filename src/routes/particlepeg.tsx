@@ -1,3 +1,4 @@
+import { useEffect, useCallback } from 'react'
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { useTheme } from '@/providers/theme-provider'
 import { PHOTOS } from '@/features/photography'
@@ -17,20 +18,37 @@ function ParticlePeg() {
   const currentPhoto = PHOTOS[clampedIndex]
   const isDark = colorMode === 'dark'
 
-  function advance() {
+  const advance = useCallback(() => {
     const next = (clampedIndex + 1) % PHOTOS.length
     navigate({ to: '/particlepeg', search: { photo: next } })
-  }
+  }, [clampedIndex, navigate])
+
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      const target = e.target as HTMLElement
+      if (target.closest('button, a, input, [data-no-advance]')) return
+      advance()
+    }
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key === 'Enter' || e.key === ' ') {
+        const target = e.target as HTMLElement
+        if (target.closest('button, a, input')) return
+        e.preventDefault()
+        advance()
+      }
+    }
+    document.body.style.cursor = 'pointer'
+    window.addEventListener('click', handleClick)
+    window.addEventListener('keydown', handleKeyDown)
+    return () => {
+      document.body.style.cursor = ''
+      window.removeEventListener('click', handleClick)
+      window.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [advance])
 
   return (
-    <div
-      className="relative h-dvh w-full cursor-pointer"
-      onClick={advance}
-      role="button"
-      tabIndex={0}
-      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); advance() } }}
-      aria-label="Next photo"
-    >
+    <div className="relative h-dvh w-full">
       {/* Lower-third title overlay */}
       <div className="pointer-events-none absolute inset-x-0 bottom-0">
         {/* Gradient backdrop */}
