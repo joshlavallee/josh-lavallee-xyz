@@ -35,75 +35,75 @@ export default function BurgerNav() {
       ref={navRef}
       aria-label="Main navigation"
     >
-      {/* Burger button + page label */}
       <div className="flex items-center gap-3">
-        <button
-          onClick={() => setIsOpen(!isOpen)}
+        <div
           className={cn(
-            'surface surface-btn flex h-[52px] w-[52px] items-center justify-center text-foreground/80 transition-all hover:text-foreground',
-            isOpen && 'rotate-90'
+            'surface overflow-hidden transition-all duration-300 ease-out',
+            isOpen ? 'w-48' : 'w-[52px]'
           )}
-          style={{ transition: 'transform 0.3s ease, box-shadow 0.2s ease' }}
-          aria-label={isOpen ? 'Close menu' : 'Open menu'}
-          aria-expanded={isOpen}
+          style={{ maxHeight: isOpen ? '500px' : '52px' }}
         >
-          {isOpen ? <X className="size-5" /> : <Menu className="size-5" />}
-        </button>
+          {/* Burger toggle button */}
+          <button
+            onClick={() => setIsOpen(!isOpen)}
+            className={cn(
+              'flex h-[52px] w-full shrink-0 items-center justify-center cursor-pointer text-foreground/80 transition-all hover:text-foreground',
+              isOpen && 'rotate-90'
+            )}
+            style={{ transition: 'transform 0.3s ease' }}
+            aria-label={isOpen ? 'Close menu' : 'Open menu'}
+            aria-expanded={isOpen}
+          >
+            {isOpen ? <X className="size-5" /> : <Menu className="size-5" />}
+          </button>
+
+          {/* Nav items */}
+          <div
+            className={cn(
+              'px-2 pb-2 transition-all duration-200',
+              isOpen
+                ? 'translate-y-0 opacity-100'
+                : 'pointer-events-none -translate-y-2 opacity-0'
+            )}
+            style={{ transitionDelay: isOpen ? '100ms' : '0ms' }}
+          >
+            <div className="flex flex-col gap-1">
+              {NAV_ITEMS.map((item, index) => {
+                const isActive = currentPath === item.to
+                const Icon = item.icon
+
+                return (
+                  <Link
+                    key={item.to}
+                    to={item.to}
+                    onClick={() => setIsOpen(false)}
+                    className={cn(
+                      'surface-btn flex items-center gap-2.5 px-3 py-2 text-xs font-medium transition-all duration-200',
+                      isActive
+                        ? 'bg-primary/10 text-primary'
+                        : 'text-muted-foreground hover:text-foreground',
+                      isOpen
+                        ? 'translate-y-0 opacity-100'
+                        : 'pointer-events-none -translate-y-2 opacity-0'
+                    )}
+                    style={{
+                      borderRadius: 'var(--surface-radius)',
+                      transitionDelay: isOpen ? `${index * 50}ms` : '0ms',
+                    }}
+                    aria-label={item.label}
+                  >
+                    <Icon className="size-4 shrink-0" />
+                    {item.label}
+                  </Link>
+                )
+              })}
+            </div>
+          </div>
+        </div>
 
         <span className="text-[11px] font-medium uppercase tracking-[2px] text-muted-foreground">
           {currentLabel}
         </span>
-      </div>
-
-      {/* Nav items */}
-      <div className="absolute top-[64px] left-0 flex flex-col gap-1">
-        {NAV_ITEMS.map((item, index) => {
-          const isActive = currentPath === item.to
-          const Icon = item.icon
-
-          return (
-            <Link
-              key={item.to}
-              to={item.to}
-              className="group/nav-item flex items-center"
-              onClick={() => setIsOpen(false)}
-              aria-label={item.label}
-            >
-              <div
-                className={cn(
-                  'flex h-[52px] w-[52px] items-center justify-center transition-all duration-200',
-                  isActive ? 'surface-btn bg-primary/10' : 'surface-btn bg-background/50',
-                  isOpen
-                    ? 'translate-y-0 opacity-100'
-                    : 'pointer-events-none -translate-y-2 opacity-0'
-                )}
-                style={{
-                  borderRadius: 'var(--surface-radius)',
-                  transitionDelay: isOpen ? `${index * 50}ms` : '0ms',
-                }}
-              >
-                <Icon
-                  className={cn(
-                    'size-5 transition-colors',
-                    isActive ? 'text-primary' : 'text-foreground/70'
-                  )}
-                />
-              </div>
-
-              {/* Hover label */}
-              <span
-                className={cn(
-                  'pointer-events-none ml-2.5 whitespace-nowrap px-2.5 py-1 text-xs font-medium transition-opacity duration-150',
-                  'surface',
-                  'opacity-0 group-hover/nav-item:opacity-100',
-                  !isOpen && 'hidden'
-                )}
-              >
-                {item.label}
-              </span>
-            </Link>
-          )
-        })}
       </div>
     </nav>
   )
