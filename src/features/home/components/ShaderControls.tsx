@@ -28,15 +28,15 @@ export default function ShaderControls() {
   }
 
   return (
-    <div className="fixed top-1/2 right-4 z-50 -translate-y-1/2">
+    <div className="fixed bottom-4 right-4 z-50">
       <div
         className={cn(
-          'surface overflow-hidden transition-all duration-300 ease-out',
+          'surface flex flex-col-reverse overflow-hidden transition-all duration-300 ease-out',
           isOpen ? 'w-60' : 'w-[42px]'
         )}
         style={{ maxHeight: isOpen ? '600px' : '42px' }}
       >
-        {/* Header row with toggle button */}
+        {/* Toggle button row (at bottom due to flex-col-reverse) */}
         <div className="flex items-center justify-end">
           <button
             onClick={() => setIsOpen(!isOpen)}
@@ -47,13 +47,13 @@ export default function ShaderControls() {
           </button>
         </div>
 
-        {/* Panel content */}
+        {/* Panel content (above button due to flex-col-reverse) */}
         <div
           className={cn(
-            'px-3 pb-3 transition-all duration-200',
+            'px-3 pt-3 transition-all duration-200',
             isOpen
               ? 'translate-y-0 opacity-100'
-              : 'pointer-events-none -translate-y-2 opacity-0'
+              : 'pointer-events-none translate-y-2 opacity-0'
           )}
           style={{ transitionDelay: isOpen ? '100ms' : '0ms' }}
         >
