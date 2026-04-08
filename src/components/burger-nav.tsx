@@ -35,7 +35,7 @@ export default function BurgerNav() {
       ref={navRef}
       aria-label="Main navigation"
     >
-      <div className="flex items-center gap-3">
+      <div className="flex items-start gap-3">
         <div
           className={cn(
             'surface overflow-hidden transition-all duration-300 ease-out',
@@ -47,7 +47,8 @@ export default function BurgerNav() {
           <button
             onClick={() => setIsOpen(!isOpen)}
             className={cn(
-              'flex h-[52px] w-full shrink-0 items-center justify-center cursor-pointer text-foreground/80 transition-all hover:text-foreground',
+              'flex h-[52px] shrink-0 items-center justify-center cursor-pointer text-foreground/80 transition-all hover:text-foreground',
+              isOpen ? 'w-[52px]' : 'w-full',
               isOpen && 'rotate-90'
             )}
             style={{ transition: 'transform 0.3s ease' }}
@@ -101,7 +102,7 @@ export default function BurgerNav() {
           </div>
         </div>
 
-        <span className="text-[11px] font-medium uppercase tracking-[2px] text-muted-foreground">
+        <span className="flex h-[52px] items-center text-sm font-semibold uppercase tracking-[2px] text-muted-foreground">
           {currentLabel}
         </span>
       </div>

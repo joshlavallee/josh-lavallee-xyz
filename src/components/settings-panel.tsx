@@ -41,7 +41,8 @@ export default function SettingsPanel() {
           <button
             onClick={() => setIsOpen(!isOpen)}
             className={cn(
-              'flex h-[52px] w-full shrink-0 items-center justify-center cursor-pointer text-foreground/80 transition-all hover:text-foreground',
+              'flex h-[52px] shrink-0 items-center justify-center cursor-pointer text-foreground/80 transition-all hover:text-foreground',
+              isOpen ? 'w-[52px]' : 'w-full',
               isOpen && 'rotate-90'
             )}
             style={{ transition: 'transform 0.3s ease' }}

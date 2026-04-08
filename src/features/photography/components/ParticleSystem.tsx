@@ -113,18 +113,24 @@ export default function ParticleSystem({
     }
   }, [data])
 
+  // Track previous prop values to avoid redundant uniform writes
+  const prevPropsRef = useRef({ touchTexture, pointSize, imageAspect: data.imageAspect, displacementScale, opacity, softness, invertColors })
+
   useFrame((_, delta) => {
     if (!materialRef.current) return
 
-    // Always update time and uniforms (cheap)
-    materialRef.current.uniforms.uTime.value += delta
-    materialRef.current.uniforms.uTouchTexture.value = touchTexture
-    materialRef.current.uniforms.uPointSize.value = pointSize
-    materialRef.current.uniforms.uImageAspect.value = data.imageAspect
-    materialRef.current.uniforms.uDisplacementScale.value = displacementScale
-    materialRef.current.uniforms.uOpacity.value = opacity
-    materialRef.current.uniforms.uSoftness.value = softness
-    materialRef.current.uniforms.uInvertColors.value = invertColors
+    const u = materialRef.current.uniforms
+    u.uTime.value += delta
+
+    // Only update uniforms when prop values actually change
+    const prev = prevPropsRef.current
+    if (prev.touchTexture !== touchTexture) { u.uTouchTexture.value = touchTexture; prev.touchTexture = touchTexture }
+    if (prev.pointSize !== pointSize) { u.uPointSize.value = pointSize; prev.pointSize = pointSize }
+    if (prev.imageAspect !== data.imageAspect) { u.uImageAspect.value = data.imageAspect; prev.imageAspect = data.imageAspect }
+    if (prev.displacementScale !== displacementScale) { u.uDisplacementScale.value = displacementScale; prev.displacementScale = displacementScale }
+    if (prev.opacity !== opacity) { u.uOpacity.value = opacity; prev.opacity = opacity }
+    if (prev.softness !== softness) { u.uSoftness.value = softness; prev.softness = softness }
+    if (prev.invertColors !== invertColors) { u.uInvertColors.value = invertColors; prev.invertColors = invertColors }
 
     // Only lerp buffers during transitions
     const s = stateRef.current
@@ -147,8 +153,6 @@ export default function ParticleSystem({
       s.sizes[i] += (s.targetSizes![i] - s.sizes[i]) * t
     }
 
-    flagAllAttributes(geometryRef.current)
-
     // Stop lerping once converged
     if (maxDiff < LERP_THRESHOLD) {
       s.positions.set(s.targetPositions)
@@ -156,8 +160,9 @@ export default function ParticleSystem({
       s.sizes.set(s.targetSizes!)
       s.isLerping = false
       s.activeCount = Math.min(data.count, MAX_PARTICLES)
-      flagAllAttributes(geometryRef.current)
     }
+
+    flagAllAttributes(geometryRef.current)
   })
 
   const s = stateRef.current

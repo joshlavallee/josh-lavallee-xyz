@@ -52,6 +52,8 @@ export default class TouchTexture {
   }
 
   update() {
+    if (this.points.length === 0) return
+
     this.clear()
 
     for (let i = this.points.length - 1; i >= 0; i--) {
