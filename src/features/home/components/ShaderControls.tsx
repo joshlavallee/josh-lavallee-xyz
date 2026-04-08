@@ -34,7 +34,7 @@ export default function ShaderControls() {
           'surface flex flex-col-reverse overflow-hidden transition-all duration-300 ease-out',
           isOpen ? 'w-60' : 'w-[52px]'
         )}
-        style={{ maxHeight: isOpen ? '600px' : '42px' }}
+        style={{ maxHeight: isOpen ? '600px' : '52px' }}
       >
         {/* Toggle button row (at bottom due to flex-col-reverse) */}
         <div className="flex items-center justify-end">
