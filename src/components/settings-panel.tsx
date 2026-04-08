@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { Settings, Sun, Moon, Square, Layers, Circle, Play, Pause, Volume2 } from 'lucide-react'
 import { useTheme, type UIStyle } from '@/providers/theme-provider'
-import { useAudio } from '@/providers/audio-provider'
+import { useAudio, TRACKS } from '@/providers/audio-provider'
 import { cn } from '@/lib/utils'
 
 const UI_STYLES: { value: UIStyle; label: string; icon: typeof Square }[] = [
@@ -14,7 +14,7 @@ export default function SettingsPanel() {
   const [isOpen, setIsOpen] = useState(false)
   const panelRef = useRef<HTMLDivElement>(null)
   const { colorMode, uiStyle, setColorMode, setUIStyle } = useTheme()
-  const { isPlaying, volume, toggle, setVolume } = useAudio()
+  const { isPlaying, volume, track, toggle, setVolume, setTrack } = useAudio()
 
   useEffect(() => {
     if (!isOpen) return
@@ -124,7 +124,24 @@ export default function SettingsPanel() {
             <span className="mb-2 block text-[10px] font-medium uppercase tracking-widest text-muted-foreground">
               Music
             </span>
-            <div className="flex items-center gap-2">
+            <div className="flex gap-1">
+              {TRACKS.map(({ id, label }) => (
+                <button
+                  key={id}
+                  onClick={() => setTrack(id)}
+                  className={cn(
+                    'surface-btn flex flex-1 items-center justify-center px-2 py-1.5 text-xs font-medium transition-colors',
+                    track === id
+                      ? 'bg-primary text-primary-foreground'
+                      : 'text-muted-foreground hover:text-foreground'
+                  )}
+                  style={{ borderRadius: 'var(--surface-radius)' }}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+            <div className="mt-2 flex items-center gap-2">
               <button
                 onClick={toggle}
                 className="surface-btn flex h-7 w-7 shrink-0 items-center justify-center text-foreground/80 transition-colors hover:text-foreground"
