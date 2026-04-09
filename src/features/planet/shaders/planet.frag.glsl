@@ -190,8 +190,8 @@ vec4 greenLayer(vec3 p, float time) {
 
   // Amber bleeds into crevices and mid-tones of hot regions
   // Only affects low/mid noise values, bright green crests stay green
-  vec3 amberDeep   = vec3(0.50, 0.25, 0.06);
-  vec3 amberBright = vec3(0.75, 0.42, 0.10);
+  vec3 amberDeep   = vec3(0.35, 0.16, 0.03);
+  vec3 amberBright = vec3(0.55, 0.30, 0.06);
   vec3 amberColor  = mix(amberDeep, amberBright, smoothstep(0.1, 0.5, n));
   float amberMask  = heat * (1.0 - smoothstep(0.35, 0.7, n));
   color = mix(color, amberColor, amberMask);
