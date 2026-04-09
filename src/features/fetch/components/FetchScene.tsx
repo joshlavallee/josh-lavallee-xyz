@@ -13,7 +13,7 @@ const groundPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0)
 const pointerNDC = new THREE.Vector2()
 const intersectPoint = new THREE.Vector3()
 
-export default function AboutScene({ colorMode }: SceneProps) {
+export default function FetchScene({ colorMode }: SceneProps) {
   const pointerTarget = useRef(new THREE.Vector3(1, 0, 1))
   const { camera } = useThree()
 
