@@ -1,4 +1,5 @@
 import { PerspectiveCamera } from '@react-three/drei'
+import { EffectComposer, Bloom } from '@react-three/postprocessing'
 import type { ColorMode, UIStyle } from '@/providers/theme-provider'
 import TauCetiPlanet from './TauCetiPlanet'
 
@@ -19,6 +20,14 @@ export default function PlanetScene({ colorMode: _colorMode, uiStyle: _uiStyle }
       />
       <color attach="background" args={['#020208']} />
       <TauCetiPlanet />
+      <EffectComposer>
+        <Bloom
+          luminanceThreshold={0.85}
+          luminanceSmoothing={0.2}
+          intensity={0.3}
+          mipmapBlur
+        />
+      </EffectComposer>
     </>
   )
 }
