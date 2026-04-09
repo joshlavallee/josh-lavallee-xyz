@@ -20,19 +20,24 @@ interface SliderGroup {
 
 const SLIDER_GROUPS: SliderGroup[] = [
   {
-    label: 'Curl Noise / Vortex',
+    label: 'Flow & Turbulence',
     sliders: [
-      { key: 'curlScale', label: 'Curl Scale', min: 0.5, max: 4.0, step: 0.1, labelLow: 'Large storms', labelHigh: 'Tight spirals' },
-      { key: 'curlStrength', label: 'Curl Strength', min: 0.0, max: 3.0, step: 0.1, labelLow: 'Calm', labelHigh: 'Chaotic' },
-      { key: 'swirlIntensity', label: 'Swirl Intensity', min: 0.5, max: 4.0, step: 0.1, labelLow: 'Smooth', labelHigh: 'Turbulent' },
+      { key: 'warpStrength', label: 'Warp Strength', min: 0.5, max: 6.0, step: 0.1, labelLow: 'Gentle', labelHigh: 'Chaotic' },
     ],
   },
   {
-    label: 'Color & Emission',
+    label: 'Heat Regions',
     sliders: [
-      { key: 'emissionStrength', label: 'Emission Strength', min: 0.0, max: 3.0, step: 0.1, labelLow: 'Dark', labelHigh: 'Glowing' },
-      { key: 'amberIntensity', label: 'Amber Intensity', min: 0.0, max: 3.0, step: 0.01, labelLow: 'Subtle', labelHigh: 'Dominant' },
-      { key: 'contrast', label: 'Contrast', min: 0.5, max: 3.0, step: 0.1, labelLow: 'Flat', labelHigh: 'Punchy' },
+      { key: 'heatAmount', label: 'Heat Amount', min: 0.0, max: 1.0, step: 0.01, labelLow: 'None', labelHigh: 'Dominant' },
+      { key: 'polarBias', label: 'Polar Bias', min: 0.0, max: 0.5, step: 0.01, labelLow: 'Uniform', labelHigh: 'Polar' },
+    ],
+  },
+  {
+    label: 'Atmosphere',
+    sliders: [
+      { key: 'bandingStrength', label: 'Banding', min: 0.0, max: 0.15, step: 0.005, labelLow: 'None', labelHigh: 'Banded' },
+      { key: 'emissionStrength', label: 'Emission', min: 0.0, max: 0.5, step: 0.01, labelLow: 'Dark', labelHigh: 'Glowing' },
+      { key: 'rimPower', label: 'Rim Power', min: 1.0, max: 6.0, step: 0.1, labelLow: 'Soft', labelHigh: 'Sharp' },
     ],
   },
   {
