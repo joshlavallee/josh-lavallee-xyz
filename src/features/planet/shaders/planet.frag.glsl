@@ -1,10 +1,18 @@
 uniform float uTime;
 uniform float uSwirlIntensity;
-uniform float uOrangeIntensity;
+uniform float uAmberIntensity;
 uniform vec3 uSunDirection;
+uniform float uRaySteps;
+uniform float uShellThickness;
+uniform float uDensityScale;
+uniform float uCurlScale;
+uniform float uCurlStrength;
+uniform float uEmissionStrength;
+uniform float uContrast;
 
 varying vec3 vPosition;
 varying vec3 vNormal;
+varying vec3 vEyePos;
 
 // ─── 3D Simplex Noise (Gustavson / Ashima Arts, MIT) ───
 
@@ -81,7 +89,7 @@ mat3 rotationMatrix = mat3(
   -0.60, -0.48,  0.64
 );
 
-// ─── FBM with rotation per octave (vortex shedding) ───
+// ─── FBM with rotation per octave ───
 
 float fbm(vec3 p) {
   float value = 0.0;
@@ -96,104 +104,130 @@ float fbm(vec3 p) {
   return value;
 }
 
-// ─── Nested Domain Warping (q/r pattern, Inigo Quilez style) ───
+// ─── Curl Noise for vortex structure ───
+// Computes curl of a 3-component potential field using finite differences.
+// 6 noise evaluations per call. Produces divergence-free flow → spiral vortices.
+
+vec3 curlNoise(vec3 p) {
+  float e = 0.1;
+
+  float n1 = snoise3D(p + vec3(0.0, e, -e));
+  float n2 = snoise3D(p + vec3(-e, 0.0, e));
+  float n3 = snoise3D(p + vec3(e, -e, 0.0));
+  float n4 = snoise3D(p + vec3(0.0, -e, e));
+  float n5 = snoise3D(p + vec3(e, 0.0, -e));
+  float n6 = snoise3D(p + vec3(-e, e, 0.0));
+
+  return vec3(n1 - n4, n2 - n5, n3 - n6) / (2.0 * e);
+}
+
+// ─── Domain Warping (single q layer, simplified for raymarching perf) ───
 
 float warpedNoise(vec3 p, float warpStrength, float time) {
-  // First warp layer: q
   vec3 q = vec3(
     fbm(p + vec3(0.0, 0.0, 0.0) + time * 0.02),
     fbm(p + vec3(5.2, 1.3, 2.8) + time * 0.015),
     fbm(p + vec3(1.7, 9.2, 4.6) + time * 0.018)
   );
 
-  // Second warp layer: r (warped by q)
-  vec3 r = vec3(
-    fbm(p + warpStrength * q + vec3(1.7, 9.2, 0.0) + time * 0.008),
-    fbm(p + warpStrength * q + vec3(8.3, 2.8, 3.1) + time * 0.012),
-    fbm(p + warpStrength * q + vec3(2.1, 6.3, 7.4) + time * 0.01)
-  );
-
-  // Final noise from double-warped coordinates
-  return fbm(p + warpStrength * r);
+  return fbm(p + warpStrength * q);
 }
 
-// ─── Color palette: vibrant Tau Ceti atmosphere ───
-// Sampled from reference: neon yellow-greens dominate, darks are still rich green,
-// with small concentrated amber/orange patches
+// ─── Atmosphere color ramp ───
+// Wide ramp from near-black voids through vivid greens to amber storm cores.
+// amberBias controls how early amber appears in the density range.
 
-vec3 atmosphereColor(float t, float amberBias) {
-  float n = clamp(t * 0.5 + 0.5, 0.0, 1.0);
+vec3 atmosphereColor(float density, float amberBias) {
+  float n = clamp(density, 0.0, 1.0);
 
-  // Darks: rich deep green (NOT brown, NOT olive)
-  vec3 deepGreen    = vec3(0.02, 0.10, 0.02);
-  vec3 darkGreen    = vec3(0.06, 0.22, 0.03);
+  vec3 voidBlack   = vec3(0.02, 0.04, 0.02);
+  vec3 deepForest  = vec3(0.04, 0.16, 0.02);
+  vec3 vividGreen  = vec3(0.18, 0.55, 0.05);
+  vec3 chartreuse  = vec3(0.55, 0.84, 0.02);
+  vec3 neonLime    = vec3(0.75, 1.0, 0.0);
+  vec3 amber       = vec3(0.80, 0.40, 0.0);
+  vec3 hotOrange   = vec3(0.94, 0.56, 0.0);
 
-  // Mids: vivid green
-  vec3 brightGreen  = vec3(0.18, 0.55, 0.05);
+  vec3 color = mix(voidBlack, deepForest, smoothstep(0.0, 0.2, n));
+  color = mix(color, vividGreen, smoothstep(0.15, 0.4, n));
+  color = mix(color, chartreuse, smoothstep(0.35, 0.6, n));
+  color = mix(color, neonLime, smoothstep(0.55, 0.8, n));
 
-  // Highlights: neon yellow-green, practically glowing
-  vec3 chartreuse   = vec3(0.55, 0.85, 0.05);
-  vec3 neonLime     = vec3(0.75, 1.0, 0.0);    // #bfff00
-
-  // Amber/orange for concentrated hot patches
-  vec3 amber        = vec3(0.85, 0.55, 0.05);
-  vec3 hotOrange    = vec3(0.95, 0.65, 0.08);
-
-  // Ramp: most of the surface is green, highlights are neon
-  float s1 = smoothstep(0.0, 0.2, n);
-  float s2 = smoothstep(0.1, 0.4, n);
-  float s3 = smoothstep(0.3, 0.6, n);
-  float s4 = smoothstep(0.5, 0.8, n);
-
-  vec3 color = deepGreen;
-  color = mix(color, darkGreen, s1);
-  color = mix(color, brightGreen, s2);
-  color = mix(color, chartreuse, s3);
-  color = mix(color, neonLime, s4);
-
-  // Amber patches: only at the very highest peaks, small and concentrated
-  float amberThreshold = 1.0 - amberBias * 0.4;
-  float amberMix = smoothstep(amberThreshold - 0.05, amberThreshold + 0.05, n);
-  vec3 amberColor = mix(amber, hotOrange, smoothstep(amberThreshold, 1.0, n));
-  color = mix(color, amberColor, amberMix);
+  float amberStart = 0.75 - amberBias * 0.3;
+  float amberMix = smoothstep(amberStart, amberStart + 0.15, n);
+  vec3 hotColor = mix(amber, hotOrange, smoothstep(amberStart + 0.1, 1.0, n));
+  color = mix(color, hotColor, amberMix);
 
   return color;
 }
 
-void main() {
-  vec3 p = vPosition * 1.6;
+// ─── Sample atmosphere at a point ───
+// Returns vec4(color.rgb, density). Called once per raymarch step.
 
-  // Sluggish, heavy time for massive dense atmosphere
+vec4 sampleAtmosphere(vec3 p, float time) {
+  vec3 curl = curlNoise(p * uCurlScale + time * 0.3);
+  vec3 displaced = p + curl * uCurlStrength;
+
+  float density = warpedNoise(displaced, uSwirlIntensity, time);
+  density = clamp(density * 0.5 + 0.5, 0.0, 1.0);
+  density = pow(density, uContrast);
+
+  vec3 color = atmosphereColor(density, uAmberIntensity);
+  return vec4(color, density);
+}
+
+// ─── Main: volumetric raymarching ───
+
+void main() {
+  vec3 objNormal = normalize(vPosition);
+  vec3 eyeViewDir = normalize(vEyePos);
   float slowTime = uTime * 0.02;
 
-  // Nested domain warping: the q/r curdling effect
-  float n = warpedNoise(p, uSwirlIntensity, slowTime);
+  // Path length correction: rays at grazing angles travel through more atmosphere
+  float viewDotNormal = max(dot(-eyeViewDir, vNormal), 0.1);
+  float totalDist = uShellThickness / viewDotNormal;
+  int numSteps = int(uRaySteps + 0.5);
+  float stepSize = totalDist / uRaySteps;
 
-  // Mild contrast to separate swirls from depths (not crushing shadows)
-  float nNorm = clamp(n * 0.5 + 0.5, 0.0, 1.0);
-  nNorm = pow(nNorm, 1.3);
-  n = nNorm * 2.0 - 1.0;
-
-  // Color from warped noise
-  vec3 color = atmosphereColor(n, uOrangeIntensity);
-
-  // Subtle depth variation (not aggressive darkening)
-  color *= 0.75 + nNorm * 0.35;
-
-  // Diffuse lighting: brighter ambient so dark side stays green, not black
+  // Lighting (computed once, same for all steps since shell is thin)
   float diffuse = max(dot(vNormal, normalize(uSunDirection)), 0.0);
-  float ambient = 0.25;
-  float lighting = ambient + diffuse * 0.75;
-  color *= lighting;
+  float ambient = 0.08;
+  float lighting = ambient + diffuse * 0.92;
 
-  // Fresnel rim: dark green → neon lime glow at the planet edge
+  // Raymarch through atmosphere shell
+  vec3 accColor = vec3(0.0);
+  float accAlpha = 0.0;
+
+  for (int i = 0; i < 24; i++) {
+    if (i >= numSteps) break;
+    if (accAlpha > 0.95) break;
+
+    float t = (float(i) + 0.5) / uRaySteps;
+    vec3 samplePos = (vPosition + objNormal * t * totalDist) * 1.6;
+
+    vec4 atmo = sampleAtmosphere(samplePos, slowTime);
+    vec3 color = atmo.rgb;
+    float density = atmo.a;
+
+    // Lit component + self-luminous emission
+    vec3 litColor = color * lighting;
+    vec3 emissive = color * uEmissionStrength * density;
+    vec3 stepColor = litColor + emissive;
+
+    // Front-to-back compositing
+    float alpha = density * stepSize * uDensityScale;
+    accColor += (1.0 - accAlpha) * stepColor * alpha;
+    accAlpha += (1.0 - accAlpha) * alpha;
+  }
+
+  // Fresnel rim: neon green glow at planet edge
   float fresnel = 1.0 - max(dot(vNormal, vec3(0.0, 0.0, 1.0)), 0.0);
   fresnel = pow(fresnel, 2.5);
   vec3 rimColor = vec3(0.5, 0.9, 0.0) * fresnel * 0.8;
-  color += rimColor;
+  accColor += rimColor;
 
-  // Light contrast on output: just enough to make highlights pop
-  color = pow(color, vec3(0.92));
+  // Gamma correction
+  accColor = pow(accColor, vec3(0.92));
 
-  gl_FragColor = vec4(color, 1.0);
+  gl_FragColor = vec4(accColor, 1.0);
 }
