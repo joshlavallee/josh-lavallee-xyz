@@ -15,8 +15,15 @@ export default function TauCetiPlanet() {
     () => ({
       uTime: { value: 0 },
       uSwirlIntensity: { value: planetSettings.swirlIntensity },
-      uOrangeIntensity: { value: planetSettings.orangeIntensity },
+      uAmberIntensity: { value: planetSettings.amberIntensity },
       uSunDirection: { value: SUN_DIRECTION },
+      uRaySteps: { value: planetSettings.raySteps },
+      uShellThickness: { value: planetSettings.shellThickness },
+      uDensityScale: { value: planetSettings.densityScale },
+      uCurlScale: { value: planetSettings.curlScale },
+      uCurlStrength: { value: planetSettings.curlStrength },
+      uEmissionStrength: { value: planetSettings.emissionStrength },
+      uContrast: { value: planetSettings.contrast },
     }),
     []
   )
@@ -26,10 +33,16 @@ export default function TauCetiPlanet() {
 
     const u = materialRef.current.uniforms
 
-    // Sluggish, heavy atmosphere - barely perceptible movement
     u.uTime.value += delta
     u.uSwirlIntensity.value = planetSettings.swirlIntensity
-    u.uOrangeIntensity.value = planetSettings.orangeIntensity
+    u.uAmberIntensity.value = planetSettings.amberIntensity
+    u.uRaySteps.value = planetSettings.raySteps
+    u.uShellThickness.value = planetSettings.shellThickness
+    u.uDensityScale.value = planetSettings.densityScale
+    u.uCurlScale.value = planetSettings.curlScale
+    u.uCurlStrength.value = planetSettings.curlStrength
+    u.uEmissionStrength.value = planetSettings.emissionStrength
+    u.uContrast.value = planetSettings.contrast
 
     meshRef.current.rotation.y += delta * planetSettings.rotationSpeed
   })
