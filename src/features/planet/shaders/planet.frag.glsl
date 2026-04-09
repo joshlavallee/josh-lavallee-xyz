@@ -83,7 +83,7 @@ float snoise3D(vec3 v) {
 
 // ─── Rotation matrix for vortex shedding per FBM octave ───
 
-mat3 rotationMatrix = mat3(
+const mat3 rotationMatrix = mat3(
    0.00,  0.80,  0.60,
   -0.80,  0.36, -0.48,
   -0.60, -0.48,  0.64
@@ -187,7 +187,7 @@ void main() {
   float viewDotNormal = max(dot(-eyeViewDir, vNormal), 0.1);
   float totalDist = uShellThickness / viewDotNormal;
   int numSteps = int(uRaySteps + 0.5);
-  float stepSize = totalDist / uRaySteps;
+  float stepSize = totalDist / float(numSteps);
 
   // Lighting (computed once, same for all steps since shell is thin)
   float diffuse = max(dot(vNormal, normalize(uSunDirection)), 0.0);
@@ -202,7 +202,7 @@ void main() {
     if (i >= numSteps) break;
     if (accAlpha > 0.95) break;
 
-    float t = (float(i) + 0.5) / uRaySteps;
+    float t = (float(i) + 0.5) / float(numSteps);
     vec3 samplePos = (vPosition + objNormal * t * totalDist) * 1.6;
 
     vec4 atmo = sampleAtmosphere(samplePos, slowTime);
@@ -221,7 +221,7 @@ void main() {
   }
 
   // Fresnel rim: neon green glow at planet edge
-  float fresnel = 1.0 - max(dot(vNormal, vec3(0.0, 0.0, 1.0)), 0.0);
+  float fresnel = 1.0 - max(dot(vNormal, -eyeViewDir), 0.0);
   fresnel = pow(fresnel, 2.5);
   vec3 rimColor = vec3(0.5, 0.9, 0.0) * fresnel * 0.8;
   accColor += rimColor;
