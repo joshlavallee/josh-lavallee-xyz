@@ -12,7 +12,7 @@ export interface PlanetSettings {
 }
 
 export const planetSettings: PlanetSettings = {
-  rotationSpeed: 0.2,
+  rotationSpeed: 0.025,
   swirlIntensity: 0.5,
   amberIntensity: 0.2,
   raySteps: 12,
