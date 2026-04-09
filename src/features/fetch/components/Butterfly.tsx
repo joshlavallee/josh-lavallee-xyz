@@ -20,10 +20,12 @@ const ROTATION_LERP = 0.05
 
 interface ButterflyProps {
   input: React.RefObject<{ x: number; y: number; active: boolean }>
+  idleState: React.RefObject<'active' | 'settling' | 'perched'>
+  dogHeadPosition: React.RefObject<THREE.Vector3>
 }
 
 const Butterfly = forwardRef<THREE.Group, ButterflyProps>(
-  function Butterfly({ input }, ref) {
+  function Butterfly({ input, idleState, dogHeadPosition }, ref) {
     const groupRef = useRef<THREE.Group>(null!)
     const { nodes, materials } = useGLTF('/models/Butterfly.glb') as GLTFResult
     const drift = useRef({ x: 0, z: 0 })
@@ -33,29 +35,50 @@ const Butterfly = forwardRef<THREE.Group, ButterflyProps>(
     useFrame(({ clock }) => {
       if (!groupRef.current) return
       const t = clock.getElapsedTime()
-      const ix = input.current?.x ?? 0
-      const iy = input.current?.y ?? 0
+      const idle = idleState.current ?? 'active'
+      const headPos = dogHeadPosition.current
 
-      // Drift toward input direction, max MAX_DRIFT from center
-      drift.current.x = THREE.MathUtils.lerp(drift.current.x, ix * MAX_DRIFT, DRIFT_LERP)
-      drift.current.z = THREE.MathUtils.lerp(drift.current.z, -iy * MAX_DRIFT, DRIFT_LERP)
+      if ((idle === 'settling' || idle === 'perched') && headPos) {
+        // Landing / perched behavior
+        const targetY = headPos.y + 0.3
+        groupRef.current.position.x = THREE.MathUtils.lerp(groupRef.current.position.x, headPos.x, 0.02)
+        groupRef.current.position.y = THREE.MathUtils.lerp(groupRef.current.position.y, targetY, 0.02)
+        groupRef.current.position.z = THREE.MathUtils.lerp(groupRef.current.position.z, headPos.z, 0.02)
 
-      groupRef.current.position.x = drift.current.x
-      groupRef.current.position.z = drift.current.z
-      groupRef.current.position.y = HOVER_HEIGHT + Math.sin(t * BOB_SPEED) * BOB_AMPLITUDE
+        const distToHead = groupRef.current.position.distanceTo(headPos)
+        if (distToHead < 0.5 && idle === 'settling') {
+          idleState.current = 'perched'
+        }
 
-      // Face movement direction
-      if (Math.abs(ix) > 0.01 || Math.abs(iy) > 0.01) {
-        const targetRot = Math.atan2(ix, -iy)
-        groupRef.current.rotation.y = THREE.MathUtils.lerp(
-          groupRef.current.rotation.y,
-          targetRot,
-          ROTATION_LERP,
-        )
+        // Dampen flutter when perched
+        const flutterScale = idle === 'perched' ? 0.2 : Math.max(0.3, distToHead / 1.5)
+        groupRef.current.rotation.z = Math.sin(t * (idle === 'perched' ? FLUTTER_SPEED * 0.3 : FLUTTER_SPEED)) * FLUTTER_AMPLITUDE * flutterScale
+      } else {
+        // Normal active behavior
+        const ix = input.current?.x ?? 0
+        const iy = input.current?.y ?? 0
+
+        // Drift toward input direction, max MAX_DRIFT from center
+        drift.current.x = THREE.MathUtils.lerp(drift.current.x, ix * MAX_DRIFT, DRIFT_LERP)
+        drift.current.z = THREE.MathUtils.lerp(drift.current.z, -iy * MAX_DRIFT, DRIFT_LERP)
+
+        groupRef.current.position.x = drift.current.x
+        groupRef.current.position.z = drift.current.z
+        groupRef.current.position.y = HOVER_HEIGHT + Math.sin(t * BOB_SPEED) * BOB_AMPLITUDE
+
+        // Face movement direction
+        if (Math.abs(ix) > 0.01 || Math.abs(iy) > 0.01) {
+          const targetRot = Math.atan2(ix, -iy)
+          groupRef.current.rotation.y = THREE.MathUtils.lerp(
+            groupRef.current.rotation.y,
+            targetRot,
+            ROTATION_LERP,
+          )
+        }
+
+        // Wing flutter
+        groupRef.current.rotation.z = Math.sin(t * FLUTTER_SPEED) * FLUTTER_AMPLITUDE
       }
-
-      // Wing flutter
-      groupRef.current.rotation.z = Math.sin(t * FLUTTER_SPEED) * FLUTTER_AMPLITUDE
     })
 
     return (

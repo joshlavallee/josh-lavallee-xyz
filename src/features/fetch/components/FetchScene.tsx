@@ -1,5 +1,5 @@
 import { useRef } from 'react'
-import { useThree } from '@react-three/fiber'
+import { useThree, useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
 import type { SceneProps } from '@/features/photography/types'
 import useInput from '../hooks/useInput'
@@ -16,6 +16,24 @@ export default function FetchScene({ colorMode }: SceneProps) {
   const sphereRef = useRef<THREE.Group>(null!)
   const dogPositionRef = useRef(new THREE.Vector3())
   const nightBlend = colorMode === 'dark' ? 1.0 : 0.0
+
+  const idleState = useRef<'active' | 'settling' | 'perched'>('active')
+  const idleTimer = useRef(0)
+  const dogHeadPosition = useRef(new THREE.Vector3())
+  const IDLE_TIMEOUT = 2.0
+
+  useFrame((_, delta) => {
+    const active = input.current?.active ?? false
+    if (active) {
+      idleTimer.current = 0
+      idleState.current = 'active'
+    } else {
+      idleTimer.current += delta
+      if (idleTimer.current > IDLE_TIMEOUT && idleState.current === 'active') {
+        idleState.current = 'settling'
+      }
+    }
+  })
 
   // Set scene background based on mode
   const { scene } = useThree()
@@ -34,9 +52,16 @@ export default function FetchScene({ colorMode }: SceneProps) {
           sphereRef={sphereRef}
           inputActive={input}
           positionRef={dogPositionRef}
+          headPositionRef={dogHeadPosition}
+          idleState={idleState}
         />
       </SphereWorld>
-      <Butterfly input={input} ref={butterflyRef} />
+      <Butterfly
+        input={input}
+        ref={butterflyRef}
+        idleState={idleState}
+        dogHeadPosition={dogHeadPosition}
+      />
     </>
   )
 }

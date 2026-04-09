@@ -21,9 +21,11 @@ interface DogProps {
   sphereRef: React.RefObject<THREE.Group>
   inputActive: React.RefObject<{ active: boolean }>
   positionRef: React.RefObject<THREE.Vector3>
+  headPositionRef: React.RefObject<THREE.Vector3>
+  idleState: React.RefObject<'active' | 'settling' | 'perched'>
 }
 
-export default function Dog({ butterflyRef, sphereRef, inputActive, positionRef }: DogProps) {
+export default function Dog({ butterflyRef, sphereRef, inputActive, positionRef, headPositionRef, idleState }: DogProps) {
   const moveRef = useRef<THREE.Group>(null!)
   const animRef = useRef<THREE.Group>(null!)
   const { scene, animations } = useGLTF('/models/Dog.glb')
@@ -33,6 +35,7 @@ export default function Dog({ butterflyRef, sphereRef, inputActive, positionRef 
   const { update: updateAI } = useDogAI(SPHERE_RADIUS)
   const up = useRef(new THREE.Vector3())
   const lookTarget = useRef(new THREE.Vector3())
+  const headBoneRef = useRef<THREE.Bone | null>(null)
 
   useEffect(() => {
     const idle = actions[IDLE]
@@ -41,6 +44,14 @@ export default function Dog({ butterflyRef, sphereRef, inputActive, positionRef 
       currentAnim.current = IDLE
     }
   }, [actions])
+
+  useEffect(() => {
+    clone.traverse((child) => {
+      if (child instanceof THREE.Bone && child.name.toLowerCase().includes('head')) {
+        headBoneRef.current = child
+      }
+    })
+  }, [clone])
 
   useFrame((_, delta) => {
     if (!moveRef.current || !butterflyRef.current || !sphereRef.current) return
@@ -54,6 +65,10 @@ export default function Dog({ butterflyRef, sphereRef, inputActive, positionRef 
     moveRef.current.position.copy(result.position)
     if (positionRef.current) {
       moveRef.current.getWorldPosition(positionRef.current)
+    }
+
+    if (headBoneRef.current && headPositionRef.current) {
+      headBoneRef.current.getWorldPosition(headPositionRef.current)
     }
 
     // Orient along sphere surface: up = normal, look toward movement
