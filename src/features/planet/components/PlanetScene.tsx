@@ -3,6 +3,7 @@ import type { ColorMode, UIStyle } from '@/providers/theme-provider'
 import TauCetiPlanet from './TauCetiPlanet'
 import FloatGroup from './FloatGroup'
 import AstronautFigure from './AstronautFigure'
+import Starfield from './Starfield'
 
 interface PlanetSceneProps {
   colorMode: ColorMode
@@ -19,7 +20,7 @@ export default function PlanetScene({ colorMode: _colorMode, uiStyle: _uiStyle }
         far={100}
         position={[0, 0, 3]}
       />
-      <color attach="background" args={['#020208']} />
+      <Starfield />
 
       {/* Planet shifted bottom-left, scaled up to fill space */}
       <group position={[-0.7, -0.5, 0]} scale={1.5}>

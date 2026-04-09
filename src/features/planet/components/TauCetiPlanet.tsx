@@ -68,15 +68,15 @@ export default function TauCetiPlanet() {
           fragmentShader={fragmentShader}
         />
       </mesh>
-      {/* Outer atmosphere shell: slightly larger, transparent, additive glow */}
+      {/* Atmosphere glow: thin shell, additive, FrontSide so it renders outside the planet */}
       <mesh>
-        <sphereGeometry args={[1.03, 48, 48]} />
+        <sphereGeometry args={[1.008, 48, 48]} />
         <shaderMaterial
           uniforms={atmoUniforms}
           vertexShader={atmoVertShader}
           fragmentShader={atmoFragShader}
           transparent
-          side={THREE.BackSide}
+          side={THREE.FrontSide}
           depthWrite={false}
           blending={THREE.AdditiveBlending}
         />
