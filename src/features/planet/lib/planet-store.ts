@@ -12,14 +12,14 @@ export interface PlanetSettings {
 }
 
 export const planetSettings: PlanetSettings = {
-  rotationSpeed: 0.04,
-  swirlIntensity: 0.7,
-  amberIntensity: 0.4,
+  rotationSpeed: 0.2,
+  swirlIntensity: 0.5,
+  amberIntensity: 0.2,
   raySteps: 12,
   shellThickness: 0.2,
   densityScale: 2.0,
-  curlScale: 0.5,
-  curlStrength: 1.2,
-  emissionStrength: 0.3,
+  curlScale: 2.3,
+  curlStrength: 0.2,
+  emissionStrength: 1.1,
   contrast: 2.8,
 }
