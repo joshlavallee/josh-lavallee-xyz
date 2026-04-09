@@ -1,16 +1,22 @@
+import { useRef } from 'react'
+import * as THREE from 'three'
 import type { SceneProps } from '@/features/photography/types'
 import useInput from '../hooks/useInput'
 import SphereWorld from './SphereWorld'
+import Butterfly from './Butterfly'
 
 export default function FetchScene({ colorMode }: SceneProps) {
   const input = useInput()
+  const butterflyRef = useRef<THREE.Group>(null!)
+  const sphereRef = useRef<THREE.Group>(null!)
 
   return (
     <>
       <ambientLight intensity={0.4} />
       <directionalLight position={[5, 10, 5]} intensity={1.5} />
 
-      <SphereWorld input={input} />
+      <SphereWorld input={input} ref={sphereRef} />
+      <Butterfly input={input} ref={butterflyRef} />
     </>
   )
 }

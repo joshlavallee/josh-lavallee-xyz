@@ -1,4 +1,4 @@
-import { useRef } from 'react'
+import { useRef, forwardRef, useImperativeHandle } from 'react'
 import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
 
@@ -11,30 +11,36 @@ interface SphereWorldProps {
   children?: React.ReactNode
 }
 
-export default function SphereWorld({ input, children }: SphereWorldProps) {
-  const groupRef = useRef<THREE.Group>(null!)
-  const velocity = useRef({ x: 0, z: 0 })
+const SphereWorld = forwardRef<THREE.Group, SphereWorldProps>(
+  function SphereWorld({ input, children }, ref) {
+    const groupRef = useRef<THREE.Group>(null!)
+    const velocity = useRef({ x: 0, z: 0 })
 
-  useFrame((_, delta) => {
-    if (!groupRef.current) return
+    useImperativeHandle(ref, () => groupRef.current)
 
-    const targetVelX = (input.current?.y ?? 0) * ROTATION_SPEED
-    const targetVelZ = -(input.current?.x ?? 0) * ROTATION_SPEED
+    useFrame((_, delta) => {
+      if (!groupRef.current) return
 
-    velocity.current.x = THREE.MathUtils.lerp(velocity.current.x, targetVelX, ROTATION_LERP)
-    velocity.current.z = THREE.MathUtils.lerp(velocity.current.z, targetVelZ, ROTATION_LERP)
+      const targetVelX = (input.current?.y ?? 0) * ROTATION_SPEED
+      const targetVelZ = -(input.current?.x ?? 0) * ROTATION_SPEED
 
-    groupRef.current.rotation.x += velocity.current.x * delta
-    groupRef.current.rotation.z += velocity.current.z * delta
-  })
+      velocity.current.x = THREE.MathUtils.lerp(velocity.current.x, targetVelX, ROTATION_LERP)
+      velocity.current.z = THREE.MathUtils.lerp(velocity.current.z, targetVelZ, ROTATION_LERP)
 
-  return (
-    <group ref={groupRef}>
-      <mesh>
-        <sphereGeometry args={[SPHERE_RADIUS, 64, 64]} />
-        <meshStandardMaterial color="#3a5a2a" roughness={0.9} />
-      </mesh>
-      {children}
-    </group>
-  )
-}
+      groupRef.current.rotation.x += velocity.current.x * delta
+      groupRef.current.rotation.z += velocity.current.z * delta
+    })
+
+    return (
+      <group ref={groupRef}>
+        <mesh>
+          <sphereGeometry args={[SPHERE_RADIUS, 64, 64]} />
+          <meshStandardMaterial color="#3a5a2a" roughness={0.9} />
+        </mesh>
+        {children}
+      </group>
+    )
+  },
+)
+
+export default SphereWorld
