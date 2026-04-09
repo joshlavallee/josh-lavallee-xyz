@@ -39,7 +39,7 @@ const SLIDER_GROUPS: SliderGroup[] = [
     label: 'Color & Emission',
     sliders: [
       { key: 'emissionStrength', label: 'Emission Strength', min: 0.0, max: 3.0, step: 0.1, labelLow: 'Dark', labelHigh: 'Glowing' },
-      { key: 'amberIntensity', label: 'Amber Intensity', min: 0.0, max: 1.0, step: 0.01, labelLow: 'Subtle', labelHigh: 'Dominant' },
+      { key: 'amberIntensity', label: 'Amber Intensity', min: 0.0, max: 2.0, step: 0.01, labelLow: 'Subtle', labelHigh: 'Dominant' },
       { key: 'contrast', label: 'Contrast', min: 0.5, max: 3.0, step: 0.1, labelLow: 'Flat', labelHigh: 'Punchy' },
     ],
   },
