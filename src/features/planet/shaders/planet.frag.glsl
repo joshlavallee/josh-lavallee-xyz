@@ -251,6 +251,11 @@ void main() {
   vec3 edgeGlow = vec3(0.30, 0.85, 0.10) * (lit + emission) * 0.4;
   finalColor = mix(finalColor, edgeGlow, edgeFade * 0.3);
 
+  // Fake bloom: bright areas get a soft luminance boost
+  float lum = dot(finalColor, vec3(0.2, 0.7, 0.1));
+  float bloomMask = smoothstep(0.45, 0.8, lum);
+  finalColor += finalColor * bloomMask * 0.15;
+
   // Gamma correction
   finalColor = pow(finalColor, vec3(0.92));
 
