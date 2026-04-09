@@ -20,9 +20,10 @@ interface DogProps {
   butterflyRef: React.RefObject<THREE.Group>
   sphereRef: React.RefObject<THREE.Group>
   inputActive: React.RefObject<{ active: boolean }>
+  positionRef: React.RefObject<THREE.Vector3>
 }
 
-export default function Dog({ butterflyRef, sphereRef, inputActive }: DogProps) {
+export default function Dog({ butterflyRef, sphereRef, inputActive, positionRef }: DogProps) {
   const moveRef = useRef<THREE.Group>(null!)
   const animRef = useRef<THREE.Group>(null!)
   const { scene, animations } = useGLTF('/models/Dog.glb')
@@ -51,6 +52,9 @@ export default function Dog({ butterflyRef, sphereRef, inputActive }: DogProps) 
 
     // Position on sphere surface
     moveRef.current.position.copy(result.position)
+    if (positionRef.current) {
+      moveRef.current.getWorldPosition(positionRef.current)
+    }
 
     // Orient along sphere surface: up = normal, look toward movement
     up.current.copy(result.position).normalize()
