@@ -208,12 +208,15 @@ void main() {
   vec3 eyeViewDir = normalize(vEyePos);
   float time = uTime * 0.02;
 
-  // Evaluate atmosphere (amber is integrated into the green layer's flow)
-  vec3 deep = deepLayer(p * 0.7, time);
-  vec4 atmo = greenLayer(p, time);
+  // View-dependent parallax: sample at two depths for cloud volume illusion
+  vec3 objNormal = normalize(vPosition);
+  vec3 parallaxOffset = objNormal * 0.04;
+  vec4 frontLayer = greenLayer(p, time);
+  vec4 backLayer = greenLayer(p - parallaxOffset, time * 0.95 + 0.5);
 
-  // Composite: deep base with atmosphere on top
-  vec3 color = atmo.rgb;
+  // Composite: back layer dimmed underneath, front on top
+  vec3 color = backLayer.rgb * 0.5;
+  color = mix(color, frontLayer.rgb, 0.75);
 
   // Wrap lighting: soft terminator, shadow side never fully black
   vec3 sunDir = normalize(uSunDirection);
@@ -230,16 +233,23 @@ void main() {
 
   vec3 finalColor = color * (lit + emission) * uDensityScale;
 
-  // Fresnel limb brightening: atmosphere is optically thicker at grazing angles
+  // Fresnel for limb effects
   float fresnel = 1.0 - max(dot(vNormal, -eyeViewDir), 0.0);
-  fresnel = pow(fresnel, 2.5);
-  vec3 rimColor = vec3(0.40, 1.0, 0.13) * fresnel * 0.6;
+
+  // Limb brightening: atmosphere optically thicker at grazing angles
+  float rimFresnel = pow(fresnel, 2.0);
+  vec3 rimColor = vec3(0.40, 1.0, 0.13) * rimFresnel * 0.7;
   finalColor += rimColor;
 
-  // Limb haze: reduce detail near edge, blend to smooth green glow
-  float limbHaze = pow(fresnel, 1.5);
-  vec3 hazeColor = vec3(0.20, 0.80, 0.07);
-  finalColor = mix(finalColor, hazeColor * (lit + emission) * 0.5, limbHaze * 0.4);
+  // Limb haze: aggressively reduce detail near edge, thick atmospheric scattering
+  float limbHaze = pow(fresnel, 1.2);
+  vec3 hazeColor = vec3(0.20, 0.75, 0.10);
+  finalColor = mix(finalColor, hazeColor * (lit + emission) * 0.6, limbHaze * 0.55);
+
+  // Limb desaturation: lose color detail at the very edge
+  float edgeFade = pow(fresnel, 3.0);
+  vec3 edgeGlow = vec3(0.30, 0.85, 0.10) * (lit + emission) * 0.4;
+  finalColor = mix(finalColor, edgeGlow, edgeFade * 0.3);
 
   // Gamma correction
   finalColor = pow(finalColor, vec3(0.92));

@@ -3,6 +3,8 @@ import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
 import vertexShader from '../shaders/planet.vert.glsl?raw'
 import fragmentShader from '../shaders/planet.frag.glsl?raw'
+import atmoVertShader from '../shaders/atmosphere.vert.glsl?raw'
+import atmoFragShader from '../shaders/atmosphere.frag.glsl?raw'
 import { planetSettings } from '../lib/planet-store'
 
 const SUN_DIRECTION = new THREE.Vector3(1.0, 1.0, 0.5).normalize()
@@ -28,6 +30,14 @@ export default function TauCetiPlanet() {
     []
   )
 
+  const atmoUniforms = useMemo(
+    () => ({
+      uSunDirection: { value: SUN_DIRECTION },
+      uEmissionStrength: { value: planetSettings.emissionStrength },
+    }),
+    []
+  )
+
   useFrame((_state, delta) => {
     if (!materialRef.current || !meshRef.current) return
 
@@ -48,14 +58,29 @@ export default function TauCetiPlanet() {
   })
 
   return (
-    <mesh ref={meshRef}>
-      <sphereGeometry args={[1, 64, 64]} />
-      <shaderMaterial
-        ref={materialRef}
-        uniforms={uniforms}
-        vertexShader={vertexShader}
-        fragmentShader={fragmentShader}
-      />
-    </mesh>
+    <group>
+      <mesh ref={meshRef}>
+        <sphereGeometry args={[1, 64, 64]} />
+        <shaderMaterial
+          ref={materialRef}
+          uniforms={uniforms}
+          vertexShader={vertexShader}
+          fragmentShader={fragmentShader}
+        />
+      </mesh>
+      {/* Outer atmosphere shell: slightly larger, transparent, additive glow */}
+      <mesh>
+        <sphereGeometry args={[1.06, 48, 48]} />
+        <shaderMaterial
+          uniforms={atmoUniforms}
+          vertexShader={atmoVertShader}
+          fragmentShader={atmoFragShader}
+          transparent
+          side={THREE.BackSide}
+          depthWrite={false}
+          blending={THREE.AdditiveBlending}
+        />
+      </mesh>
+    </group>
   )
 }
