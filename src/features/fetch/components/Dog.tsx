@@ -3,108 +3,88 @@ import { useFrame } from '@react-three/fiber'
 import { useGLTF, useAnimations } from '@react-three/drei'
 import { SkeletonUtils } from 'three-stdlib'
 import * as THREE from 'three'
+import useDogAI from '../hooks/useDogAI'
 
 type ActionName =
-  | 'AnimalArmature|AnimalArmature|AnimalArmature|Death'
-  | 'AnimalArmature|AnimalArmature|AnimalArmature|Headbutt'
   | 'AnimalArmature|AnimalArmature|AnimalArmature|Idle'
-  | 'AnimalArmature|AnimalArmature|AnimalArmature|Idle_Eating'
-  | 'AnimalArmature|AnimalArmature|AnimalArmature|Jump_Loop'
-  | 'AnimalArmature|AnimalArmature|AnimalArmature|Jump_Start'
   | 'AnimalArmature|AnimalArmature|AnimalArmature|Run'
   | 'AnimalArmature|AnimalArmature|AnimalArmature|Walk'
-
-const MOVE_SPEED = 1.2
-const RUN_SPEED = 2.2
-const STOP_THRESHOLD = 0.5
-const MAX_RADIUS = 3.5
-const RUN_THRESHOLD = 1.2
 
 const IDLE = 'AnimalArmature|AnimalArmature|AnimalArmature|Idle' as ActionName
 const WALK = 'AnimalArmature|AnimalArmature|AnimalArmature|Walk' as ActionName
 const RUN = 'AnimalArmature|AnimalArmature|AnimalArmature|Run' as ActionName
 
+const SPHERE_RADIUS = 4
+
 interface DogProps {
-  pointerTarget: React.RefObject<THREE.Vector3>
+  butterflyRef: React.RefObject<THREE.Group>
+  sphereRef: React.RefObject<THREE.Group>
+  inputActive: React.RefObject<{ active: boolean }>
 }
 
-export default function Dog({ pointerTarget }: DogProps) {
+export default function Dog({ butterflyRef, sphereRef, inputActive }: DogProps) {
   const moveRef = useRef<THREE.Group>(null!)
   const animRef = useRef<THREE.Group>(null!)
   const { scene, animations } = useGLTF('/models/Dog.glb')
   const clone = React.useMemo(() => SkeletonUtils.clone(scene), [scene])
   const { actions } = useAnimations(animations, animRef)
-
-  const stateRef = useRef({
-    posX: 1.0,
-    posZ: 0.5,
-    rotY: 0,
-    currentAnim: '' as string,
-    wasMoving: false,
-    shouldRun: false,
-  })
+  const currentAnim = useRef<string>('')
+  const { update: updateAI } = useDogAI(SPHERE_RADIUS)
+  const up = useRef(new THREE.Vector3())
+  const lookTarget = useRef(new THREE.Vector3())
 
   useEffect(() => {
     const idle = actions[IDLE]
     if (idle) {
       idle.reset().fadeIn(0.3).play()
-      stateRef.current.currentAnim = IDLE
+      currentAnim.current = IDLE
     }
   }, [actions])
 
   useFrame((_, delta) => {
-    const s = stateRef.current
-    if (!moveRef.current || !pointerTarget.current) return
+    if (!moveRef.current || !butterflyRef.current || !sphereRef.current) return
 
-    const targetX = pointerTarget.current.x
-    const targetZ = pointerTarget.current.z
-    const dx = targetX - s.posX
-    const dz = targetZ - s.posZ
-    const dist = Math.sqrt(dx * dx + dz * dz)
+    const butterflyWorldPos = butterflyRef.current.getWorldPosition(new THREE.Vector3())
+    const active = inputActive.current?.active ?? false
 
-    const isMoving = dist > STOP_THRESHOLD
-    const shouldRun = dist > RUN_THRESHOLD
+    const result = updateAI(delta, butterflyWorldPos, sphereRef.current, active)
 
-    if (isMoving) {
-      const speed = shouldRun ? RUN_SPEED : MOVE_SPEED
-      const moveAmount = Math.min(speed * delta, dist)
-      s.posX += (dx / dist) * moveAmount
-      s.posZ += (dz / dist) * moveAmount
+    // Position on sphere surface
+    moveRef.current.position.copy(result.position)
 
-      const fromCenter = Math.sqrt(s.posX * s.posX + s.posZ * s.posZ)
-      if (fromCenter > MAX_RADIUS) {
-        s.posX *= MAX_RADIUS / fromCenter
-        s.posZ *= MAX_RADIUS / fromCenter
-      }
+    // Orient along sphere surface: up = normal, look toward movement
+    up.current.copy(result.position).normalize()
 
-      const targetRot = Math.atan2(dx, dz)
-      s.rotY = THREE.MathUtils.lerp(s.rotY, targetRot, 0.06)
-    } else {
-      if (dx !== 0 || dz !== 0) {
-        const targetRot = Math.atan2(dx, dz)
-        s.rotY = THREE.MathUtils.lerp(s.rotY, targetRot, 0.03)
-      }
+    // Calculate look direction along the surface tangent
+    const butterflyLocal = butterflyWorldPos.clone()
+    sphereRef.current.worldToLocal(butterflyLocal)
+    lookTarget.current.copy(butterflyLocal).normalize().multiplyScalar(SPHERE_RADIUS)
+
+    // Make the dog face the butterfly along the surface
+    moveRef.current.up.copy(up.current)
+    if (result.speed > 0.1) {
+      moveRef.current.lookAt(lookTarget.current)
     }
 
-    moveRef.current.position.x = s.posX
-    moveRef.current.position.z = s.posZ
-    moveRef.current.rotation.y = s.rotY
-
     // Animation transitions
-    const desiredAnim = isMoving ? (shouldRun ? RUN : WALK) : IDLE
-    if (desiredAnim !== s.currentAnim) {
-      const prev = actions[s.currentAnim as ActionName]
+    let desiredAnim: ActionName = IDLE
+    if (result.state === 'sprint') desiredAnim = RUN
+    else if (result.state === 'overshoot') desiredAnim = result.speed > 0.5 ? RUN : WALK
+    else if (result.state === 'trot') desiredAnim = WALK
+
+    if (desiredAnim !== currentAnim.current) {
+      const prev = actions[currentAnim.current as ActionName]
       const next = actions[desiredAnim]
       if (next) {
         prev?.fadeOut(0.2)
         next.reset().fadeIn(0.2).play()
-        s.currentAnim = desiredAnim
+        currentAnim.current = desiredAnim
       }
     }
   })
 
   return (
-    <group ref={moveRef} position={[1, 0, 0.5]} scale={0.5} dispose={null}>
+    <group ref={moveRef} scale={0.5} dispose={null}>
       <group ref={animRef}>
         <primitive object={clone} />
       </group>
