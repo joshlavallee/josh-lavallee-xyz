@@ -22,7 +22,7 @@ const SLIDER_GROUPS: SliderGroup[] = [
   {
     label: 'Flow & Turbulence',
     sliders: [
-      { key: 'warpStrength', label: 'Warp Strength', min: 0.5, max: 6.0, step: 0.1, labelLow: 'Gentle', labelHigh: 'Chaotic' },
+      { key: 'warpStrength', label: 'Warp Strength', min: 0.5, max: 8.0, step: 0.1, labelLow: 'Gentle', labelHigh: 'Chaotic' },
     ],
   },
   {
@@ -35,9 +35,7 @@ const SLIDER_GROUPS: SliderGroup[] = [
   {
     label: 'Atmosphere',
     sliders: [
-      { key: 'bandingStrength', label: 'Banding', min: 0.0, max: 0.15, step: 0.005, labelLow: 'None', labelHigh: 'Banded' },
       { key: 'emissionStrength', label: 'Emission', min: 0.0, max: 0.5, step: 0.01, labelLow: 'Dark', labelHigh: 'Glowing' },
-      { key: 'rimPower', label: 'Rim Power', min: 1.0, max: 6.0, step: 0.1, labelLow: 'Soft', labelHigh: 'Sharp' },
     ],
   },
   {

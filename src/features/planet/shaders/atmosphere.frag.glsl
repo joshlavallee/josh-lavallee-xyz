@@ -1,29 +1,21 @@
-uniform vec3 uSunDirection;
-uniform float uEmissionStrength;
-
 varying vec3 vNormal;
-varying vec3 vEyePos;
+varying vec3 vWorldPosition;
 
 void main() {
-  vec3 eyeViewDir = normalize(vEyePos);
-  vec3 normal = normalize(vNormal);
+  vec3 viewDir = normalize(cameraPosition - vWorldPosition);
+  float rim = 1.0 - max(dot(vNormal, viewDir), 0.0);
 
-  // Fresnel: strongest at edges, zero face-on
-  float fresnel = 1.0 - max(dot(normal, -eyeViewDir), 0.0);
+  // Layered atmospheric falloff — soft inner haze + defined outer edge
+  float innerHaze = smoothstep(0.3, 1.0, rim) * 0.08;
+  float midHaze = pow(rim, 3.0) * 0.15;
+  float outerGlow = pow(rim, 6.0) * 0.25;
 
-  // Thin bright glow at the very rim
-  float glow = pow(fresnel, 5.0) * 0.8;
+  float alpha = innerHaze + midHaze + outerGlow;
 
-  // Subtle lighting: brighter on sunlit side
-  vec3 sunDir = normalize(uSunDirection);
-  float sunInfluence = max(dot(normal, sunDir) * 0.3 + 0.7, 0.0);
+  // Color shifts from warm green near surface to cooler teal at edge
+  vec3 innerColor = vec3(0.10, 0.45, 0.06);
+  vec3 outerColor = vec3(0.04, 0.28, 0.10);
+  vec3 glowColor = mix(innerColor, outerColor, pow(rim, 2.0));
 
-  vec3 glowColor = vec3(0.35, 1.0, 0.15) * sunInfluence;
-  float emission = uEmissionStrength * 2.0;
-  glowColor *= (0.3 + emission);
-
-  // Discard face-on fragments entirely to avoid any flat color
-  if (glow < 0.01) discard;
-
-  gl_FragColor = vec4(glowColor, glow);
+  gl_FragColor = vec4(glowColor, alpha);
 }

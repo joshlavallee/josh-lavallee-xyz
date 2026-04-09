@@ -5,6 +5,7 @@ import vertexShader from '../shaders/planet.vert.glsl?raw'
 import fragmentShader from '../shaders/planet.frag.glsl?raw'
 import atmoVertShader from '../shaders/atmosphere.vert.glsl?raw'
 import atmoFragShader from '../shaders/atmosphere.frag.glsl?raw'
+import innerHazeFragShader from '../shaders/inner-haze.frag.glsl?raw'
 import { planetSettings } from '../lib/planet-store'
 
 const SUN_DIRECTION = new THREE.Vector3(0.6, 0.3, 0.8).normalize()
@@ -19,18 +20,8 @@ export default function TauCetiPlanet() {
       uWarpStrength: { value: planetSettings.warpStrength },
       uHeatAmount: { value: planetSettings.heatAmount },
       uPolarBias: { value: planetSettings.polarBias },
-      uBandingStrength: { value: planetSettings.bandingStrength },
       uEmissionStrength: { value: planetSettings.emissionStrength },
-      uRimPower: { value: planetSettings.rimPower },
       uSunDirection: { value: SUN_DIRECTION },
-    }),
-    []
-  )
-
-  const atmoUniforms = useMemo(
-    () => ({
-      uSunDirection: { value: SUN_DIRECTION },
-      uEmissionStrength: { value: planetSettings.emissionStrength },
     }),
     []
   )
@@ -44,9 +35,7 @@ export default function TauCetiPlanet() {
     u.uWarpStrength.value = planetSettings.warpStrength
     u.uHeatAmount.value = planetSettings.heatAmount
     u.uPolarBias.value = planetSettings.polarBias
-    u.uBandingStrength.value = planetSettings.bandingStrength
     u.uEmissionStrength.value = planetSettings.emissionStrength
-    u.uRimPower.value = planetSettings.rimPower
 
     meshRef.current.rotation.y += delta * planetSettings.rotationSpeed
   })
@@ -62,17 +51,26 @@ export default function TauCetiPlanet() {
           fragmentShader={fragmentShader}
         />
       </mesh>
-      {/* Atmosphere glow: thin shell, additive, FrontSide so it renders outside the planet */}
+      {/* Outer atmosphere glow — BackSide layered falloff */}
       <mesh>
-        <sphereGeometry args={[1.008, 48, 48]} />
+        <sphereGeometry args={[1.02, 48, 48]} />
         <shaderMaterial
-          uniforms={atmoUniforms}
           vertexShader={atmoVertShader}
           fragmentShader={atmoFragShader}
           transparent
+          side={THREE.BackSide}
+          depthWrite={false}
+        />
+      </mesh>
+      {/* Inner atmospheric haze — gel-like layer */}
+      <mesh>
+        <sphereGeometry args={[1.01, 48, 48]} />
+        <shaderMaterial
+          vertexShader={atmoVertShader}
+          fragmentShader={innerHazeFragShader}
+          transparent
           side={THREE.FrontSide}
           depthWrite={false}
-          blending={THREE.AdditiveBlending}
         />
       </mesh>
     </group>

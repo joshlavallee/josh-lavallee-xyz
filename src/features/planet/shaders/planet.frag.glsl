@@ -2,9 +2,7 @@ uniform float uTime;
 uniform float uWarpStrength;
 uniform float uHeatAmount;
 uniform float uPolarBias;
-uniform float uBandingStrength;
 uniform float uEmissionStrength;
-uniform float uRimPower;
 uniform vec3 uSunDirection;
 
 varying vec3 vNormal;
@@ -80,34 +78,39 @@ float fbm(vec3 p, int octaves) {
 
 float warpedFbm(vec3 p, float t) {
   float slow = t * 0.0004;
-  float qx = fbm(p + vec3(0.0, 0.0, slow), 3);
-  float qy = fbm(p + vec3(5.2, 1.3, slow * 0.7), 3);
-  float qz = fbm(p + vec3(2.1, 7.8, slow * 0.9), 3);
+  float qx = fbm(p + vec3(0.0, 0.0, slow), 5);
+  float qy = fbm(p + vec3(5.2, 1.3, slow * 0.7), 5);
+  float qz = fbm(p + vec3(2.1, 7.8, slow * 0.9), 5);
   vec3 q = vec3(qx, qy, qz);
-  float warpQ = uWarpStrength * 0.86;
-  float rx = fbm(p + warpQ * q + vec3(1.7, 9.2, slow * 0.5), 3);
-  float ry = fbm(p + warpQ * q + vec3(8.3, 2.8, slow * 0.8), 3);
-  float rz = fbm(p + warpQ * q + vec3(3.7, 5.1, slow * 0.6), 3);
+  float rx = fbm(p + uWarpStrength * q + vec3(1.7, 9.2, slow * 0.5), 5);
+  float ry = fbm(p + uWarpStrength * q + vec3(8.3, 2.8, slow * 0.8), 5);
+  float rz = fbm(p + uWarpStrength * q + vec3(3.7, 5.1, slow * 0.6), 5);
   vec3 r = vec3(rx, ry, rz);
-  return fbm(p + uWarpStrength * r + vec3(0.0, 0.0, slow * 0.3), 3);
+  return fbm(p + (uWarpStrength + 0.5) * r + vec3(0.0, 0.0, slow * 0.3), 5);
 }
 
 // ─── Main ───
 
 void main() {
   vec3 nPos = normalize(vPosition);
-  vec3 pos = nPos * 0.32;
+  vec3 pos = nPos * 0.7;
 
   // === SWIRL PATTERN ===
   float pattern = warpedFbm(pos, uTime);
   float t = clamp(pattern * 0.5 + 0.5, 0.0, 1.0);
 
-  // Atmospheric depth — second layer at different scale
-  float depth = warpedFbm(pos * 1.3 + vec3(7.0, 3.0, 1.0), uTime * 0.7);
+  // Atmospheric depth — second layer at different scale (3 octaves for perf)
+  float depth = warpedFbm(pos * 1.4 + vec3(7.0, 3.0, 1.0), uTime * 0.7);
   float d = clamp(depth * 0.5 + 0.5, 0.0, 1.0);
-  t = t * 0.7 + d * 0.3;
-  t = smoothstep(0.15, 0.88, t);
-  t = pow(t, 1.5);
+
+  // Fine wispy detail layer (3 octaves — subtle, doesn't need full detail)
+  float fine = fbm(nPos * 5.0 + vec3(uTime * 0.0002), 3);
+  float f = clamp(fine * 0.5 + 0.5, 0.0, 1.0);
+
+  // Blend: large swirls + depth + fine wisps
+  t = t * 0.50 + d * 0.28 + f * 0.22;
+  t = smoothstep(0.08, 0.92, t);
+  t = pow(t, 1.1);
 
   // === HEAT MAP — patches competing with green for space ===
   float hSlow = uTime * 0.00025;
@@ -116,63 +119,60 @@ void main() {
   float h3 = fbm(nPos * 1.8 + vec3(14.0, 3.0, hSlow * 0.8), 3);
   float latitude = abs(nPos.y);
   float polarBiasVal = smoothstep(0.2, 0.7, latitude) * uPolarBias;
-  float patch1 = smoothstep(0.66, 0.78, h1 * 0.5 + 0.5 + polarBiasVal);
-  float patch2 = smoothstep(0.70, 0.82, h2 * 0.5 + 0.5 + polarBiasVal * 0.5);
-  float patch3 = smoothstep(0.72, 0.83, h3 * 0.5 + 0.5);
+  float patch1 = smoothstep(0.56, 0.70, h1 * 0.5 + 0.5 + polarBiasVal);
+  float patch2 = smoothstep(0.60, 0.74, h2 * 0.5 + 0.5 + polarBiasVal * 0.5);
+  float patch3 = smoothstep(0.64, 0.77, h3 * 0.5 + 0.5);
   float orangeAmount = clamp(max(patch1 * 0.85, max(patch2 * 0.7, patch3 * 0.5)), 0.0, 1.0);
   orangeAmount *= uHeatAmount * 2.0;
   orangeAmount = clamp(orangeAmount, 0.0, 1.0);
 
   // === GREEN RAMP ===
-  vec3 gAbyss  = vec3(0.008, 0.032, 0.018);
-  vec3 gDeep   = vec3(0.015, 0.06, 0.028);
-  vec3 gDark   = vec3(0.03, 0.12, 0.04);
-  vec3 gForest = vec3(0.07, 0.24, 0.05);
-  vec3 gMid    = vec3(0.14, 0.42, 0.065);
-  vec3 gBright = vec3(0.24, 0.60, 0.09);
-  vec3 gLime   = vec3(0.38, 0.74, 0.13);
-  vec3 gYellow = vec3(0.52, 0.82, 0.19);
+  vec3 gAbyss  = vec3(0.008, 0.03, 0.012);
+  vec3 gDeep   = vec3(0.018, 0.07, 0.022);
+  vec3 gDark   = vec3(0.035, 0.14, 0.03);
+  vec3 gForest = vec3(0.07, 0.26, 0.042);
+  vec3 gMid    = vec3(0.14, 0.40, 0.06);
+  vec3 gMid2   = vec3(0.22, 0.54, 0.08);
+  vec3 gBright = vec3(0.32, 0.68, 0.10);
+  vec3 gLime   = vec3(0.48, 0.80, 0.13);
+  vec3 gYellow = vec3(0.65, 0.88, 0.18);
 
   vec3 greenColor;
-  if (t < 0.06) greenColor = mix(gAbyss, gDeep, t / 0.06);
-  else if (t < 0.14) greenColor = mix(gDeep, gDark, (t - 0.06) / 0.08);
-  else if (t < 0.26) greenColor = mix(gDark, gForest, (t - 0.14) / 0.12);
-  else if (t < 0.40) greenColor = mix(gForest, gMid, (t - 0.26) / 0.14);
-  else if (t < 0.56) greenColor = mix(gMid, gBright, (t - 0.40) / 0.16);
-  else if (t < 0.74) greenColor = mix(gBright, gLime, (t - 0.56) / 0.18);
+  if (t < 0.05) greenColor = mix(gAbyss, gDeep, t / 0.05);
+  else if (t < 0.12) greenColor = mix(gDeep, gDark, (t - 0.05) / 0.07);
+  else if (t < 0.20) greenColor = mix(gDark, gForest, (t - 0.12) / 0.08);
+  else if (t < 0.32) greenColor = mix(gForest, gMid, (t - 0.20) / 0.12);
+  else if (t < 0.46) greenColor = mix(gMid, gMid2, (t - 0.32) / 0.14);
+  else if (t < 0.58) greenColor = mix(gMid2, gBright, (t - 0.46) / 0.12);
+  else if (t < 0.74) greenColor = mix(gBright, gLime, (t - 0.58) / 0.16);
   else greenColor = mix(gLime, gYellow, (t - 0.74) / 0.26);
 
   // === ORANGE RAMP ===
-  vec3 oBrown  = vec3(0.05, 0.02, 0.008);
-  vec3 oDark   = vec3(0.18, 0.07, 0.015);
-  vec3 oDeep   = vec3(0.38, 0.15, 0.022);
-  vec3 oMid    = vec3(0.62, 0.28, 0.035);
-  vec3 oBright = vec3(0.80, 0.42, 0.05);
-  vec3 oHot    = vec3(0.90, 0.54, 0.07);
-  vec3 oGlow   = vec3(0.96, 0.65, 0.10);
+  vec3 oBrown  = vec3(0.04, 0.015, 0.004);
+  vec3 oDark   = vec3(0.14, 0.05, 0.008);
+  vec3 oDeep   = vec3(0.32, 0.12, 0.015);
+  vec3 oMid    = vec3(0.52, 0.22, 0.025);
+  vec3 oBright = vec3(0.70, 0.32, 0.035);
+  vec3 oHot    = vec3(0.82, 0.42, 0.05);
+  vec3 oGlow   = vec3(0.88, 0.50, 0.07);
 
   vec3 orangeColor;
-  if (t < 0.06) orangeColor = mix(oBrown, oDark, t / 0.06);
-  else if (t < 0.14) orangeColor = mix(oDark, oDeep, (t - 0.06) / 0.08);
-  else if (t < 0.26) orangeColor = mix(oDeep, oMid, (t - 0.14) / 0.12);
-  else if (t < 0.40) orangeColor = mix(oMid, oBright, (t - 0.26) / 0.14);
-  else if (t < 0.56) orangeColor = mix(oBright, oHot, (t - 0.40) / 0.16);
-  else if (t < 0.74) orangeColor = mix(oHot, oGlow, (t - 0.56) / 0.18);
-  else orangeColor = mix(oGlow, oGlow * 1.1, (t - 0.74) / 0.26);
+  if (t < 0.05) orangeColor = mix(oBrown, oDark, t / 0.05);
+  else if (t < 0.12) orangeColor = mix(oDark, oDeep, (t - 0.05) / 0.07);
+  else if (t < 0.22) orangeColor = mix(oDeep, oMid, (t - 0.12) / 0.10);
+  else if (t < 0.38) orangeColor = mix(oMid, oBright, (t - 0.22) / 0.16);
+  else if (t < 0.55) orangeColor = mix(oBright, oHot, (t - 0.38) / 0.17);
+  else if (t < 0.75) orangeColor = mix(oHot, oGlow, (t - 0.55) / 0.20);
+  else orangeColor = mix(oGlow, oGlow * 1.1, (t - 0.75) / 0.25);
 
   // === BLEND ===
   vec3 color = mix(greenColor, orangeColor, orangeAmount);
-
-  // === GAS GIANT BANDING ===
-  float lat = asin(nPos.y);
-  float band = sin(lat * 8.0) * uBandingStrength + sin(lat * 14.0 + 2.0) * uBandingStrength * 0.5;
-  color *= 1.0 + band;
 
   // === DIRECTIONAL SUNLIGHT ===
   vec3 sunDir = normalize(uSunDirection);
   float sunDot = max(dot(nPos, sunDir), 0.0);
   float sunlight = smoothstep(0.0, 1.0, sunDot);
-  color *= 0.65 + 0.40 * sunlight;
+  color *= 0.78 + 0.25 * sunlight;
   color = mix(color, color * vec3(0.9, 0.95, 1.05), (1.0 - sunlight) * 0.15);
 
   // === ATMOSPHERIC EFFECTS ===
@@ -180,21 +180,16 @@ void main() {
   float viewAngle = max(dot(nPos, viewDir), 0.0);
 
   // Limb darkening
-  float limbDark = smoothstep(0.0, 0.45, viewAngle);
-  color *= 0.35 + 0.65 * limbDark;
+  float limbDark = smoothstep(0.0, 0.4, viewAngle);
+  color *= 0.55 + 0.45 * limbDark;
 
   // Atmospheric haze at limb
   float fresnel = pow(1.0 - viewAngle, 3.0);
   vec3 hazeColor = vec3(0.06, 0.30, 0.10);
   color = mix(color, hazeColor, fresnel * 0.45);
 
-  // === SELF-EMISSION (hybrid: ported from current shader) ===
+  // === SELF-EMISSION ===
   color += color * t * uEmissionStrength;
-
-  // === FRESNEL RIM (hybrid: ported from current shader) ===
-  float rimFresnel = pow(1.0 - viewAngle, uRimPower);
-  vec3 rimColor = vec3(0.40, 1.0, 0.13);
-  color += rimColor * rimFresnel * 0.4;
 
   gl_FragColor = vec4(color, 1.0);
 }

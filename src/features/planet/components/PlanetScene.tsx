@@ -22,13 +22,13 @@ export default function PlanetScene({ colorMode: _colorMode, uiStyle: _uiStyle }
       />
       <Starfield />
 
-      {/* Planet shifted bottom-left, scaled up to fill space */}
-      <group position={[-0.7, -0.5, 0]} scale={1.5}>
+      {/* Planet massive, only limb arc visible from left to bottom-right */}
+      <group position={[-1.8, -2.2, -1]} scale={4.2}>
         <TauCetiPlanet />
       </group>
 
-      {/* Floating silhouettes between camera and planet */}
-      <FloatGroup position={[0.15, 0.1, 1.2]} bobSpeed={0.5} swaySpeed={0.35}>
+      {/* Astronaut floating near the planet's limb */}
+      <FloatGroup position={[0.2, 0.3, 1.2]} bobSpeed={0.5} swaySpeed={0.35}>
         <AstronautFigure scale={0.04} />
       </FloatGroup>
 
