@@ -22,7 +22,7 @@ function useAstronautMaterial() {
         uniforms: {
           uRimColor: { value: GREEN_RIM.clone() },
           uRimPower: { value: 2.5 },
-          uRimIntensity: { value: 0.8 },
+          uRimIntensity: { value: 0.55 },
         },
         vertexShader,
         fragmentShader,

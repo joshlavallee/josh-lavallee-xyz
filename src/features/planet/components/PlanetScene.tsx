@@ -69,7 +69,7 @@ export default function PlanetScene({
         rotationSpeed={1}
       >
         <group rotation={[-Math.PI / 2.5, -2.5, 0.75]}>
-          <Astronaut scale={0.175} />
+          <Astronaut scale={0.22} />
         </group>
       </FloatGroup>
 
