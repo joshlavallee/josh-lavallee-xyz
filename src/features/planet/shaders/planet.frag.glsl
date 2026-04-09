@@ -136,31 +136,10 @@ vec3 deepLayer(vec3 p, float time) {
   return mix(darkBrown, rustBrown, n);
 }
 
-// ─── Layer 2: Mid Atmosphere (amber/orange thermal) ───
-// Covers entire planet under green. Large-scale gentle swirls. Emissive.
-
-vec3 amberLayer(vec3 p, float time) {
-  vec3 w1 = vec3(
-    fbm3(p + time * 0.008),
-    fbm3(p + vec3(7.3, 3.1, 0.0) + time * 0.006),
-    0.0
-  );
-  float n = fbm5(p + w1 * 1.5);
-  n = n * 0.5 + 0.5;
-  n = pow(n, 0.8);
-
-  vec3 deepAmber    = vec3(0.50, 0.25, 0.06);
-  vec3 brightOrange = vec3(0.70, 0.38, 0.08);
-  vec3 warmCore     = vec3(0.85, 0.50, 0.12);
-
-  vec3 color = mix(deepAmber, brightOrange, smoothstep(0.2, 0.6, n));
-  color = mix(color, warmCore, smoothstep(0.75, 1.0, n));
-  return color;
-}
-
-// ─── Layer 3: Upper Atmosphere (green, variable opacity) ───
-// Most visually complex. 3-pass domain warping + curl noise.
-// Opacity varies to create "hot spots" revealing amber beneath.
+// ─── Atmosphere Layer (green with integrated amber hot regions) ───
+// Amber appears in vortex cores/crevices of the SAME turbulent flow.
+// A low-freq heat map biases regions toward amber, sharing warped coords
+// so boundaries are organic and turbulent, not flat blobs.
 
 vec4 greenLayer(vec3 p, float time) {
   // Curl noise for spiral vortex structure
@@ -191,6 +170,12 @@ vec4 greenLayer(vec3 p, float time) {
   n = n * 0.5 + 0.5;
   n = pow(n, uContrast);
 
+  // Heat map: low-freq noise on SAME warped coords determines amber regions
+  // Shares the turbulent flow so boundaries are organic, not flat blobs
+  float heat = fbm3(cp * 0.5 + vec3(42.0, 17.0, 0.0) + time * 0.005);
+  heat = heat * 0.5 + 0.5;
+  heat = smoothstep(0.5, 0.8, heat) * uAmberIntensity;
+
   // Green color ramp: deep crevice shadows → vivid radioactive → yellow-green
   vec3 crevice     = vec3(0.01, 0.08, 0.0);
   vec3 deepGreen   = vec3(0.05, 0.33, 0.0);
@@ -198,25 +183,20 @@ vec4 greenLayer(vec3 p, float time) {
   vec3 brightGreen = vec3(0.27, 0.87, 0.07);
   vec3 yellowGreen = vec3(0.53, 0.93, 0.13);
 
-  // Dark crevices create depth illusion between cloud folds
   vec3 color = mix(crevice, deepGreen, smoothstep(0.0, 0.12, n));
   color = mix(color, midGreen, smoothstep(0.08, 0.35, n));
   color = mix(color, brightGreen, smoothstep(0.3, 0.65, n));
   color = mix(color, yellowGreen, smoothstep(0.6, 0.9, n));
 
-  // Opacity map: higher frequency for smaller, more concentrated hot spots
-  float opNoise = fbm3(p * 0.9 + vec3(42.0, 17.0, 0.0) + time * 0.005);
-  opNoise = opNoise * 0.5 + 0.5;
+  // Amber bleeds into crevices and mid-tones of hot regions
+  // Only affects low/mid noise values, bright green crests stay green
+  vec3 amberDeep   = vec3(0.50, 0.25, 0.06);
+  vec3 amberBright = vec3(0.75, 0.42, 0.10);
+  vec3 amberColor  = mix(amberDeep, amberBright, smoothstep(0.1, 0.5, n));
+  float amberMask  = heat * (1.0 - smoothstep(0.35, 0.7, n));
+  color = mix(color, amberColor, amberMask);
 
-  // amberIntensity: higher = green thins more, revealing amber beneath
-  // Raised thresholds so green covers more surface, amber patches are smaller
-  float opacity = smoothstep(
-    0.25 + uAmberIntensity * 0.2,
-    0.48 + uAmberIntensity * 0.15,
-    opNoise
-  );
-
-  return vec4(color, opacity);
+  return vec4(color, 1.0);
 }
 
 // ─── Main: three-layer compositing ───
@@ -226,31 +206,20 @@ void main() {
   vec3 eyeViewDir = normalize(vEyePos);
   float time = uTime * 0.02;
 
-  // Evaluate three atmospheric layers (no latitude bands - chaotic isotropic turbulence)
+  // Evaluate atmosphere (amber is integrated into the green layer's flow)
   vec3 deep = deepLayer(p * 0.7, time);
-  vec3 amber = amberLayer(p * 0.8, time);
-  vec4 green = greenLayer(p, time);
+  vec4 atmo = greenLayer(p, time);
 
-  // Composite back-to-front
-  vec3 color = deep;
-
-  // Amber layer: nearly full coverage, thins slightly in deepest spots
-  float amberCoverage = fbm3(p * 0.4 + vec3(13.0, 7.0, 0.0) + time * 0.003);
-  amberCoverage = 0.75 + smoothstep(-0.3, 0.3, amberCoverage) * 0.25;
-  color = mix(color, amber, amberCoverage);
-
-  // Green layer: variable opacity creates hot spots where amber shows through
-  color = mix(color, green.rgb, green.a);
+  // Composite: deep base with atmosphere on top
+  vec3 color = atmo.rgb;
 
   // Wrap lighting: soft terminator, shadow side never fully black
   vec3 sunDir = normalize(uSunDirection);
   float wrap = pow(max(dot(vNormal, sunDir) * 0.5 + 0.5, 0.0), 1.5);
   float lit = 0.65 * wrap;
 
-  // Self-emission: green glows strongly, amber is subdued furnace glow
-  float greenGlow = uEmissionStrength * 0.4 * green.a;
-  float amberGlow = uEmissionStrength * 0.08 * (1.0 - green.a);
-  float emission = greenGlow + amberGlow;
+  // Self-emission: atmosphere glows from within
+  float emission = uEmissionStrength * 0.35;
 
   // Shadow side: desaturate and shift toward cold teal-green
   float shadowFactor = smoothstep(-0.2, 0.3, dot(vNormal, sunDir));
