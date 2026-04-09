@@ -65,13 +65,14 @@ Replace entirely with Adrian's procedural fragment shader. Key sections from Adr
 ### planet.vert.glsl — Update
 
 Update to match Adrian's vertex shader:
-- Add `varying vec2 vUv` (pass UV coordinates)
-- Use `modelMatrix * vec4(position, 1.0)` for world-space `vPosition` (Adrian's shader uses `cameraPosition - vPosition` which requires world space)
+- Keep `vPosition` as object-space `position` (for noise sampling, consistent regardless of scene offset)
+- Add `vWorldPosition` via `modelMatrix * vec4(position, 1.0)` for correct `cameraPosition - vWorldPosition` view direction
 - Keep `vNormal` via `normalMatrix * normal`
+- Drop `vEyePos` (replaced by world-space view direction)
 
-### Atmosphere shaders — No changes
+### atmosphere.frag.glsl — Emission multiplier fix
 
-The atmosphere glow shell is independent and continues to work as-is.
+The atmosphere shader reads `uEmissionStrength` from the same store. The old default was `3.0` with multiplier `* 0.08` (effective: `0.24`). New default is `0.12`, so the multiplier changes to `* 2.0` to preserve the same effective value (`0.12 * 2.0 = 0.24`).
 
 ## State & Controls
 
@@ -135,13 +136,14 @@ Replace the current 3 groups with 4 new groups:
 | `src/features/planet/shaders/planet.vert.glsl` | Update: add vUv, world-space vPosition |
 | `src/features/planet/lib/planet-store.ts` | Replace interface and defaults (10 params → 7) |
 | `src/features/planet/components/TauCetiPlanet.tsx` | Rewire uniforms to new settings |
+| `src/features/planet/shaders/atmosphere.frag.glsl` | Fix emission multiplier for new store range |
 | `src/features/planet/components/PlanetControls.tsx` | Replace slider groups with new 4-group layout |
 
 ## Not Changed
 
 - `PlanetScene.tsx` — composition unchanged
 - `FloatGroup.tsx`, `AstronautFigure.tsx`, `Starfield.tsx` — unrelated
-- Atmosphere shaders (`atmosphere.vert.glsl`, `atmosphere.frag.glsl`) — independent
+- `atmosphere.vert.glsl` — independent
 - Silhouette shaders — independent
 - `planet-v1-volumetric.frag.glsl` — stays as archived alternative
 - Barrel exports, routes — unchanged
