@@ -1,25 +1,19 @@
 export interface PlanetSettings {
   rotationSpeed: number
-  swirlIntensity: number
-  amberIntensity: number
-  raySteps: number
-  shellThickness: number
-  densityScale: number
-  curlScale: number
-  curlStrength: number
+  warpStrength: number
+  heatAmount: number
+  polarBias: number
+  bandingStrength: number
   emissionStrength: number
-  contrast: number
+  rimPower: number
 }
 
 export const planetSettings: PlanetSettings = {
   rotationSpeed: 0.005,
-  swirlIntensity: 0.7,
-  amberIntensity: 1.75,
-  raySteps: 12,
-  shellThickness: 0.2,
-  densityScale: 1.6,
-  curlScale: 1.6,
-  curlStrength: 0.25,
-  emissionStrength: 3.0,
-  contrast: 1.8,
+  warpStrength: 3.5,
+  heatAmount: 0.5,
+  polarBias: 0.15,
+  bandingStrength: 0.04,
+  emissionStrength: 0.12,
+  rimPower: 3.0,
 }
