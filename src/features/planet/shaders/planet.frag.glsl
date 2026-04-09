@@ -174,11 +174,11 @@ vec4 greenLayer(vec3 p, float time) {
   // Shares the turbulent flow so boundaries are organic, not flat blobs
   float heat = fbm3(cp * 0.25 + vec3(42.0, 17.0, 0.0) + time * 0.004);
   heat = heat * 0.5 + 0.5;
-  heat = smoothstep(0.6, 0.85, heat) * uAmberIntensity;
+  heat = smoothstep(0.45, 0.75, heat) * uAmberIntensity;
 
   // Green color ramp: deep crevice shadows → vivid radioactive → yellow-green
-  vec3 crevice     = vec3(0.01, 0.08, 0.0);
-  vec3 deepGreen   = vec3(0.05, 0.33, 0.0);
+  vec3 crevice     = vec3(0.04, 0.18, 0.02);
+  vec3 deepGreen   = vec3(0.10, 0.38, 0.03);
   vec3 midGreen    = vec3(0.20, 0.67, 0.07);
   vec3 brightGreen = vec3(0.27, 0.87, 0.07);
   vec3 yellowGreen = vec3(0.53, 0.93, 0.13);
