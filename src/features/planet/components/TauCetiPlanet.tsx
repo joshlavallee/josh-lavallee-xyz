@@ -70,7 +70,7 @@ export default function TauCetiPlanet() {
       </mesh>
       {/* Outer atmosphere shell: slightly larger, transparent, additive glow */}
       <mesh>
-        <sphereGeometry args={[1.06, 48, 48]} />
+        <sphereGeometry args={[1.03, 48, 48]} />
         <shaderMaterial
           uniforms={atmoUniforms}
           vertexShader={atmoVertShader}
