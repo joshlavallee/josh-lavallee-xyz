@@ -189,7 +189,7 @@ void main() {
 
   // === BLEND ===
   vec3 baseGreen = mix(greenColor, orangeColor, orangeAmount);
-  vec3 color = mix(baseGreen, redColor * 0.60, uRedMode);
+  vec3 color = mix(baseGreen, redColor, uRedMode);
 
   // === DIRECTIONAL SUNLIGHT ===
   vec3 sunDir = normalize(uSunDirection);
@@ -208,7 +208,9 @@ void main() {
 
   // Atmospheric haze at limb
   float fresnel = pow(1.0 - viewAngle, 3.0);
-  vec3 hazeColor = vec3(0.06, 0.30, 0.10);
+  vec3 greenHaze = vec3(0.06, 0.30, 0.10);
+  vec3 redHaze = vec3(0.30, 0.06, 0.04);
+  vec3 hazeColor = mix(greenHaze, redHaze, uRedMode);
   color = mix(color, hazeColor, fresnel * 0.45);
 
   // === SELF-EMISSION ===

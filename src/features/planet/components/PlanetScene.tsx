@@ -17,6 +17,7 @@ interface PlanetSceneProps {
 const GREEN_GLOW = new THREE.Color("#1a7a20");
 const RED_GLOW = new THREE.Color("#7a1a10");
 
+
 function GlowLight() {
   const lightRef = useRef<THREE.PointLight>(null);
   useFrame((_state, delta) => {

@@ -405,6 +405,99 @@ body {
     0 0 0 2px oklch(from var(--ring) l c h / 20%);
 }
 
+/* ============================================
+   RED BEACON BUTTON
+   Spinning particle-stream border effect
+   ============================================ */
+
+@property --beacon-angle {
+  syntax: "<angle>";
+  initial-value: 0deg;
+  inherits: false;
+}
+
+.beacon-border {
+  background: var(--beacon-gradient);
+  animation: beacon-spin 3s linear infinite;
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  padding: 4px;
+}
+
+.beacon-border--red {
+  --beacon-gradient: conic-gradient(
+    from var(--beacon-angle),
+    transparent 0deg,
+    transparent 90deg,
+    rgba(255, 40, 20, 0.05) 130deg,
+    rgba(255, 55, 30, 0.3) 150deg,
+    rgba(255, 70, 35, 0.7) 165deg,
+    rgba(255, 90, 50, 1) 178deg,
+    rgba(255, 90, 50, 1) 182deg,
+    rgba(255, 70, 35, 0.7) 195deg,
+    rgba(255, 55, 30, 0.3) 210deg,
+    rgba(255, 40, 20, 0.05) 230deg,
+    transparent 270deg,
+    transparent 360deg
+  );
+}
+
+.beacon-border--green {
+  --beacon-gradient: conic-gradient(
+    from var(--beacon-angle),
+    transparent 0deg,
+    transparent 90deg,
+    rgba(30, 200, 60, 0.05) 130deg,
+    rgba(40, 220, 70, 0.3) 150deg,
+    rgba(50, 230, 80, 0.7) 165deg,
+    rgba(70, 240, 100, 1) 178deg,
+    rgba(70, 240, 100, 1) 182deg,
+    rgba(50, 230, 80, 0.7) 195deg,
+    rgba(40, 220, 70, 0.3) 210deg,
+    rgba(30, 200, 60, 0.05) 230deg,
+    transparent 270deg,
+    transparent 360deg
+  );
+}
+
+/* Blurred glow layer behind the border */
+.beacon-border::before {
+  content: '';
+  position: absolute;
+  inset: -6px;
+  border-radius: inherit;
+  background: var(--beacon-gradient);
+  filter: blur(12px);
+  opacity: 0.8;
+  z-index: -1;
+  animation: beacon-spin 3s linear infinite;
+}
+
+.beacon-breathe-red {
+  animation: beacon-breathe-red 5s ease-in-out infinite;
+}
+
+.beacon-breathe-green {
+  animation: beacon-breathe-green 5s ease-in-out infinite;
+}
+
+@keyframes beacon-spin {
+  to { --beacon-angle: 360deg; }
+}
+
+@keyframes beacon-breathe-red {
+  0%, 100% { color: rgba(255, 255, 255, 0.35); }
+  50% { color: rgba(255, 70, 40, 0.7); }
+}
+
+@keyframes beacon-breathe-green {
+  0%, 100% { color: rgba(255, 255, 255, 0.35); }
+  50% { color: rgba(70, 230, 90, 0.7); }
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;
