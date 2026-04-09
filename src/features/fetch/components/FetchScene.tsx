@@ -1,4 +1,4 @@
-import { useRef } from 'react'
+import { useRef, useEffect } from 'react'
 import { useThree, useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
 import type { SceneProps } from '@/features/photography/types'
@@ -35,8 +35,12 @@ export default function FetchScene({ colorMode }: SceneProps) {
     }
   })
 
-  // Set scene background based on mode
-  const { scene } = useThree()
+  // Override camera position for fetch scene
+  const { scene, camera } = useThree()
+  useEffect(() => {
+    camera.position.set(0, 8, 8)
+    camera.lookAt(0, 0, 0)
+  }, [camera])
   scene.background = colorMode === 'light'
     ? new THREE.Color('#87CEEB')
     : new THREE.Color('#0a0a1a')
