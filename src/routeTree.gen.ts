@@ -11,7 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as ParticlepegRouteImport } from './routes/particlepeg'
 import { Route as LostInSpaceRouteImport } from './routes/lost-in-space'
-import { Route as AboutRouteImport } from './routes/about'
+import { Route as FetchRouteImport } from './routes/fetch'
 import { Route as IndexRouteImport } from './routes/index'
 
 const ParticlepegRoute = ParticlepegRouteImport.update({
@@ -24,9 +24,9 @@ const LostInSpaceRoute = LostInSpaceRouteImport.update({
   path: '/lost-in-space',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AboutRoute = AboutRouteImport.update({
-  id: '/about',
-  path: '/about',
+const FetchRoute = FetchRouteImport.update({
+  id: '/fetch',
+  path: '/fetch',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -37,34 +37,34 @@ const IndexRoute = IndexRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/about': typeof AboutRoute
+  '/fetch': typeof FetchRoute
   '/lost-in-space': typeof LostInSpaceRoute
   '/particlepeg': typeof ParticlepegRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/about': typeof AboutRoute
+  '/fetch': typeof FetchRoute
   '/lost-in-space': typeof LostInSpaceRoute
   '/particlepeg': typeof ParticlepegRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/about': typeof AboutRoute
+  '/fetch': typeof FetchRoute
   '/lost-in-space': typeof LostInSpaceRoute
   '/particlepeg': typeof ParticlepegRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/about' | '/lost-in-space' | '/particlepeg'
+  fullPaths: '/' | '/fetch' | '/lost-in-space' | '/particlepeg'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/about' | '/lost-in-space' | '/particlepeg'
-  id: '__root__' | '/' | '/about' | '/lost-in-space' | '/particlepeg'
+  to: '/' | '/fetch' | '/lost-in-space' | '/particlepeg'
+  id: '__root__' | '/' | '/fetch' | '/lost-in-space' | '/particlepeg'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  AboutRoute: typeof AboutRoute
+  FetchRoute: typeof FetchRoute
   LostInSpaceRoute: typeof LostInSpaceRoute
   ParticlepegRoute: typeof ParticlepegRoute
 }
@@ -85,11 +85,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LostInSpaceRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/about': {
-      id: '/about'
-      path: '/about'
-      fullPath: '/about'
-      preLoaderRoute: typeof AboutRouteImport
+    '/fetch': {
+      id: '/fetch'
+      path: '/fetch'
+      fullPath: '/fetch'
+      preLoaderRoute: typeof FetchRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -104,7 +104,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  AboutRoute: AboutRoute,
+  FetchRoute: FetchRoute,
   LostInSpaceRoute: LostInSpaceRoute,
   ParticlepegRoute: ParticlepegRoute,
 }

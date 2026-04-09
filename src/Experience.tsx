@@ -17,7 +17,7 @@ export default function Experience({ routePath, colorMode, uiStyle, photoIndex }
       {routePath === '/' && (
         <HomeScene colorMode={colorMode} uiStyle={uiStyle} />
       )}
-      {routePath === '/about' && (
+      {routePath === '/fetch' && (
         <AboutScene colorMode={colorMode} uiStyle={uiStyle} />
       )}
       {routePath === '/particlepeg' && (

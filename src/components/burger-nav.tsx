@@ -5,7 +5,7 @@ import { cn } from '@/lib/utils'
 
 const NAV_ITEMS = [
   { to: '/' as const, label: 'Home', icon: Home },
-  { to: '/about' as const, label: 'About', icon: PawPrint },
+  { to: '/fetch' as const, label: 'Fetch', icon: PawPrint },
   { to: '/particlepeg' as const, label: 'Particle Peg', icon: Waypoints },
   { to: '/lost-in-space' as const, label: 'Lost in Space', icon: Globe },
 ]
