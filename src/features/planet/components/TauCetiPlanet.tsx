@@ -39,7 +39,7 @@ export default function TauCetiPlanet() {
   })
 
   return (
-    <group>
+    <group rotation={[0, 0, Math.PI / 2]}>
       <mesh ref={meshRef}>
         <sphereGeometry args={[1, 64, 64]} />
         <shaderMaterial
