@@ -21,7 +21,7 @@ const ANTI_FLASH_SCRIPT = `
     var mode = localStorage.getItem('theme-color-mode');
     var style = localStorage.getItem('theme-ui-style');
     if (mode === 'dark' || (!mode)) document.documentElement.classList.add('dark');
-    document.documentElement.setAttribute('data-style', style || 'flat');
+    document.documentElement.setAttribute('data-style', style || 'glass');
   } catch(e) {}
 })();
 `

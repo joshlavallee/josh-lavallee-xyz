@@ -17,7 +17,7 @@ const COLOR_MODE_KEY = 'theme-color-mode'
 const UI_STYLE_KEY = 'theme-ui-style'
 
 const DEFAULT_COLOR_MODE: ColorMode = 'dark'
-const DEFAULT_UI_STYLE: UIStyle = 'flat'
+const DEFAULT_UI_STYLE: UIStyle = 'glass'
 
 function getInitialColorMode(): ColorMode {
   if (typeof window === 'undefined') return DEFAULT_COLOR_MODE
