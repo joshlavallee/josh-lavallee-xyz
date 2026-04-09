@@ -31,13 +31,11 @@ export default function TauCetiPlanet() {
 
     const u = materialRef.current.uniforms
 
-    u.uTime.value += delta
+    u.uTime.value += delta * 0.75
     u.uWarpStrength.value = planetSettings.warpStrength
     u.uHeatAmount.value = planetSettings.heatAmount
     u.uPolarBias.value = planetSettings.polarBias
     u.uEmissionStrength.value = planetSettings.emissionStrength
-
-    meshRef.current.rotation.y += delta * planetSettings.rotationSpeed
   })
 
   return (

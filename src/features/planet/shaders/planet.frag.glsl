@@ -78,15 +78,15 @@ float fbm(vec3 p, int octaves) {
 
 float warpedFbm(vec3 p, float t) {
   float slow = t * 0.0004;
-  float qx = fbm(p + vec3(0.0, 0.0, slow), 5);
-  float qy = fbm(p + vec3(5.2, 1.3, slow * 0.7), 5);
-  float qz = fbm(p + vec3(2.1, 7.8, slow * 0.9), 5);
+  float qx = fbm(p + vec3(0.0, 0.0, slow), 3);
+  float qy = fbm(p + vec3(5.2, 1.3, slow * 0.7), 3);
+  float qz = fbm(p + vec3(2.1, 7.8, slow * 0.9), 3);
   vec3 q = vec3(qx, qy, qz);
-  float rx = fbm(p + uWarpStrength * q + vec3(1.7, 9.2, slow * 0.5), 5);
-  float ry = fbm(p + uWarpStrength * q + vec3(8.3, 2.8, slow * 0.8), 5);
-  float rz = fbm(p + uWarpStrength * q + vec3(3.7, 5.1, slow * 0.6), 5);
+  float rx = fbm(p + uWarpStrength * q + vec3(1.7, 9.2, slow * 0.5), 4);
+  float ry = fbm(p + uWarpStrength * q + vec3(8.3, 2.8, slow * 0.8), 4);
+  float rz = fbm(p + uWarpStrength * q + vec3(3.7, 5.1, slow * 0.6), 4);
   vec3 r = vec3(rx, ry, rz);
-  return fbm(p + (uWarpStrength + 0.5) * r + vec3(0.0, 0.0, slow * 0.3), 5);
+  return fbm(p + (uWarpStrength + 0.5) * r + vec3(0.0, 0.0, slow * 0.3), 4);
 }
 
 // ─── Main ───
@@ -99,8 +99,8 @@ void main() {
   float pattern = warpedFbm(pos, uTime);
   float t = clamp(pattern * 0.5 + 0.5, 0.0, 1.0);
 
-  // Atmospheric depth — second layer at different scale (3 octaves for perf)
-  float depth = warpedFbm(pos * 1.4 + vec3(7.0, 3.0, 1.0), uTime * 0.7);
+  // Atmospheric depth — cheap single FBM instead of full domain warp
+  float depth = fbm(pos * 1.4 + vec3(7.0, 3.0, 1.0) + vec3(uTime * 0.0003), 4);
   float d = clamp(depth * 0.5 + 0.5, 0.0, 1.0);
 
   // Fine wispy detail layer (3 octaves — subtle, doesn't need full detail)
@@ -119,9 +119,9 @@ void main() {
   float h3 = fbm(nPos * 1.8 + vec3(14.0, 3.0, hSlow * 0.8), 3);
   float latitude = abs(nPos.y);
   float polarBiasVal = smoothstep(0.2, 0.7, latitude) * uPolarBias;
-  float patch1 = smoothstep(0.56, 0.70, h1 * 0.5 + 0.5 + polarBiasVal);
-  float patch2 = smoothstep(0.60, 0.74, h2 * 0.5 + 0.5 + polarBiasVal * 0.5);
-  float patch3 = smoothstep(0.64, 0.77, h3 * 0.5 + 0.5);
+  float patch1 = smoothstep(0.55, 0.72, h1 * 0.5 + 0.5 + polarBiasVal);
+  float patch2 = smoothstep(0.59, 0.75, h2 * 0.5 + 0.5 + polarBiasVal * 0.5);
+  float patch3 = smoothstep(0.63, 0.78, h3 * 0.5 + 0.5);
   float orangeAmount = clamp(max(patch1 * 0.85, max(patch2 * 0.7, patch3 * 0.5)), 0.0, 1.0);
   orangeAmount *= uHeatAmount * 2.0;
   orangeAmount = clamp(orangeAmount, 0.0, 1.0);

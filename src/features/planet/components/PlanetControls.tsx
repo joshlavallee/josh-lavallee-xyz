@@ -28,7 +28,7 @@ const SLIDER_GROUPS: SliderGroup[] = [
   {
     label: 'Heat Regions',
     sliders: [
-      { key: 'heatAmount', label: 'Heat Amount', min: 0.0, max: 1.0, step: 0.01, labelLow: 'None', labelHigh: 'Dominant' },
+      { key: 'heatAmount', label: 'Heat Amount', min: 0.0, max: 2.0, step: 0.01, labelLow: 'None', labelHigh: 'Dominant' },
       { key: 'polarBias', label: 'Polar Bias', min: 0.0, max: 0.5, step: 0.01, labelLow: 'Uniform', labelHigh: 'Polar' },
     ],
   },
@@ -36,12 +36,6 @@ const SLIDER_GROUPS: SliderGroup[] = [
     label: 'Atmosphere',
     sliders: [
       { key: 'emissionStrength', label: 'Emission', min: 0.0, max: 0.5, step: 0.01, labelLow: 'Dark', labelHigh: 'Glowing' },
-    ],
-  },
-  {
-    label: 'Scene',
-    sliders: [
-      { key: 'rotationSpeed', label: 'Rotation Speed', min: 0.0, max: 1.0, step: 0.01, labelLow: 'Still', labelHigh: 'Fast' },
     ],
   },
 ]

@@ -1,5 +1,4 @@
 export interface PlanetSettings {
-  rotationSpeed: number
   warpStrength: number
   heatAmount: number
   polarBias: number
@@ -7,9 +6,8 @@ export interface PlanetSettings {
 }
 
 export const planetSettings: PlanetSettings = {
-  rotationSpeed: 0.0,
-  warpStrength: 2.8,
-  heatAmount: 0.53,
-  polarBias: 0.02,
-  emissionStrength: 0.34,
+  warpStrength: 3.4,
+  heatAmount: 1.2,
+  polarBias: 0.0,
+  emissionStrength: 0.33,
 }
