@@ -222,15 +222,10 @@ void main() {
   vec3 eyeViewDir = normalize(vEyePos);
   float time = uTime * 0.02;
 
-  // Latitude band flow: alternating east/west currents for large-scale shearing
-  float lat = vPosition.y;
-  float bandFlow = sin(lat * 3.14159 * 3.5) * 0.4;
-  vec3 flowP = p + vec3(bandFlow * time * 5.0, 0.0, 0.0);
-
-  // Evaluate three atmospheric layers
+  // Evaluate three atmospheric layers (no latitude bands - chaotic isotropic turbulence)
   vec3 deep = deepLayer(p * 0.7, time);
   vec3 amber = amberLayer(p * 0.8, time);
-  vec4 green = greenLayer(flowP, time);
+  vec4 green = greenLayer(p, time);
 
   // Composite back-to-front
   vec3 color = deep;
