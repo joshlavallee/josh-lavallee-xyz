@@ -38,17 +38,15 @@ export default function FetchScene({ colorMode }: SceneProps) {
   })
 
   // Override camera position for fetch scene
-  const { scene, camera } = useThree()
+  const { camera } = useThree()
   useEffect(() => {
     camera.position.set(0, 8, 8)
     camera.lookAt(0, 0, 0)
   }, [camera])
-  scene.background = colorMode === 'light'
-    ? new THREE.Color('#87CEEB')
-    : new THREE.Color('#0a0a1a')
 
   return (
     <>
+      <color attach="background" args={[colorMode === 'light' ? '#87CEEB' : '#0a0a1a']} />
       {colorMode === 'light' ? <DayEnvironment /> : <NightEnvironment />}
 
       <SphereWorld input={input} ref={sphereRef}>

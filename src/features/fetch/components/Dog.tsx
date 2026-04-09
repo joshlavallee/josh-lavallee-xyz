@@ -4,6 +4,7 @@ import { useGLTF, useAnimations } from '@react-three/drei'
 import { SkeletonUtils } from 'three-stdlib'
 import * as THREE from 'three'
 import useDogAI from '../hooks/useDogAI'
+import { SPHERE_RADIUS } from '../constants'
 
 type ActionName =
   | 'AnimalArmature|AnimalArmature|AnimalArmature|Idle'
@@ -13,8 +14,6 @@ type ActionName =
 const IDLE = 'AnimalArmature|AnimalArmature|AnimalArmature|Idle' as ActionName
 const WALK = 'AnimalArmature|AnimalArmature|AnimalArmature|Walk' as ActionName
 const RUN = 'AnimalArmature|AnimalArmature|AnimalArmature|Run' as ActionName
-
-const SPHERE_RADIUS = 4
 
 interface DogProps {
   butterflyRef: React.RefObject<THREE.Group>
@@ -35,6 +34,8 @@ export default function Dog({ butterflyRef, sphereRef, inputActive, positionRef,
   const { update: updateAI } = useDogAI(SPHERE_RADIUS)
   const up = useRef(new THREE.Vector3())
   const lookTarget = useRef(new THREE.Vector3())
+  const butterflyWorldPosRef = useRef(new THREE.Vector3())
+  const butterflyLocalRef = useRef(new THREE.Vector3())
   const headBoneRef = useRef<THREE.Bone | null>(null)
 
   useEffect(() => {
@@ -56,7 +57,7 @@ export default function Dog({ butterflyRef, sphereRef, inputActive, positionRef,
   useFrame((_, delta) => {
     if (!moveRef.current || !butterflyRef.current || !sphereRef.current) return
 
-    const butterflyWorldPos = butterflyRef.current.getWorldPosition(new THREE.Vector3())
+    const butterflyWorldPos = butterflyRef.current.getWorldPosition(butterflyWorldPosRef.current)
     const active = inputActive.current?.active ?? false
 
     const result = updateAI(delta, butterflyWorldPos, sphereRef.current, active)
@@ -75,7 +76,7 @@ export default function Dog({ butterflyRef, sphereRef, inputActive, positionRef,
     up.current.copy(result.position).normalize()
 
     // Calculate look direction along the surface tangent
-    const butterflyLocal = butterflyWorldPos.clone()
+    const butterflyLocal = butterflyLocalRef.current.copy(butterflyWorldPos)
     sphereRef.current.worldToLocal(butterflyLocal)
     lookTarget.current.copy(butterflyLocal).normalize().multiplyScalar(SPHERE_RADIUS)
 

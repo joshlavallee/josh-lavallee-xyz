@@ -3,9 +3,9 @@ import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
 import grassVertexShader from '../shaders/grass.vert.glsl?raw'
 import grassFragmentShader from '../shaders/grass.frag.glsl?raw'
+import { SPHERE_RADIUS } from '../constants'
 
 const BLADE_COUNT = 15000
-const SPHERE_RADIUS = 4
 const GOLDEN_ANGLE = Math.PI * (3 - Math.sqrt(5))
 
 interface GrassFieldProps {

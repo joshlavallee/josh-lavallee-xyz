@@ -1,10 +1,10 @@
 import { useRef, forwardRef, useImperativeHandle } from 'react'
 import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
+import { SPHERE_RADIUS } from '../constants'
 
 const ROTATION_SPEED = 1.2
 const ROTATION_LERP = 0.08
-const SPHERE_RADIUS = 4
 
 interface SphereWorldProps {
   input: React.RefObject<{ x: number; y: number; active: boolean }>
