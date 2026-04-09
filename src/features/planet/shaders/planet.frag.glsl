@@ -172,9 +172,9 @@ vec4 greenLayer(vec3 p, float time) {
 
   // Heat map: low-freq noise on SAME warped coords determines amber regions
   // Shares the turbulent flow so boundaries are organic, not flat blobs
-  float heat = fbm3(cp * 0.5 + vec3(42.0, 17.0, 0.0) + time * 0.005);
+  float heat = fbm3(cp * 0.25 + vec3(42.0, 17.0, 0.0) + time * 0.004);
   heat = heat * 0.5 + 0.5;
-  heat = smoothstep(0.5, 0.8, heat) * uAmberIntensity;
+  heat = smoothstep(0.6, 0.85, heat) * uAmberIntensity;
 
   // Green color ramp: deep crevice shadows → vivid radioactive → yellow-green
   vec3 crevice     = vec3(0.01, 0.08, 0.0);
