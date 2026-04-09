@@ -7,7 +7,7 @@ import atmoVertShader from '../shaders/atmosphere.vert.glsl?raw'
 import atmoFragShader from '../shaders/atmosphere.frag.glsl?raw'
 import { planetSettings } from '../lib/planet-store'
 
-const SUN_DIRECTION = new THREE.Vector3(1.0, 1.0, 0.5).normalize()
+const SUN_DIRECTION = new THREE.Vector3(0.6, 0.3, 0.8).normalize()
 
 export default function TauCetiPlanet() {
   const materialRef = useRef<THREE.ShaderMaterial>(null)
@@ -16,16 +16,13 @@ export default function TauCetiPlanet() {
   const uniforms = useMemo(
     () => ({
       uTime: { value: 0 },
-      uSwirlIntensity: { value: planetSettings.swirlIntensity },
-      uAmberIntensity: { value: planetSettings.amberIntensity },
-      uSunDirection: { value: SUN_DIRECTION },
-      uRaySteps: { value: planetSettings.raySteps },
-      uShellThickness: { value: planetSettings.shellThickness },
-      uDensityScale: { value: planetSettings.densityScale },
-      uCurlScale: { value: planetSettings.curlScale },
-      uCurlStrength: { value: planetSettings.curlStrength },
+      uWarpStrength: { value: planetSettings.warpStrength },
+      uHeatAmount: { value: planetSettings.heatAmount },
+      uPolarBias: { value: planetSettings.polarBias },
+      uBandingStrength: { value: planetSettings.bandingStrength },
       uEmissionStrength: { value: planetSettings.emissionStrength },
-      uContrast: { value: planetSettings.contrast },
+      uRimPower: { value: planetSettings.rimPower },
+      uSunDirection: { value: SUN_DIRECTION },
     }),
     []
   )
@@ -44,15 +41,12 @@ export default function TauCetiPlanet() {
     const u = materialRef.current.uniforms
 
     u.uTime.value += delta
-    u.uSwirlIntensity.value = planetSettings.swirlIntensity
-    u.uAmberIntensity.value = planetSettings.amberIntensity
-    u.uRaySteps.value = planetSettings.raySteps
-    u.uShellThickness.value = planetSettings.shellThickness
-    u.uDensityScale.value = planetSettings.densityScale
-    u.uCurlScale.value = planetSettings.curlScale
-    u.uCurlStrength.value = planetSettings.curlStrength
+    u.uWarpStrength.value = planetSettings.warpStrength
+    u.uHeatAmount.value = planetSettings.heatAmount
+    u.uPolarBias.value = planetSettings.polarBias
+    u.uBandingStrength.value = planetSettings.bandingStrength
     u.uEmissionStrength.value = planetSettings.emissionStrength
-    u.uContrast.value = planetSettings.contrast
+    u.uRimPower.value = planetSettings.rimPower
 
     meshRef.current.rotation.y += delta * planetSettings.rotationSpeed
   })
