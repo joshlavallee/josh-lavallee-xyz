@@ -1,1 +1,5 @@
-<svg xmlns="http://www.w3.org/2000/svg" version="1.1" aria-hidden="true" role="img" class="iconify iconify--logos" width="31.88" height="32" preserveAspectRatio="xMidYMid meet" viewBox="0 0 256 257"> <g><g id="letter_group" transform="scale(1)"><g><path d="M29.5,31.8v18.7v14.4v13.7v15.1v18c-4.8-5.2-8.7-11.3-11.4-18H4c4.6,14.4,13.6,26.9,25.5,35.8  c4.2,3.2,8.8,5.9,13.7,8v-14.9v-29V78.6V64.9V50.5V20.9V6c-4.9,2.2-9.4,4.9-13.7,8V31.8z" fill="#ee3d50" transform="translate(96.7529376 72)"/></g><g><path d="M13.7,31.8v18.7v14.4v13.7v15.1v18c4.8-5.2,8.7-11.3,11.4-18h14.1c-4.6,14.4-13.6,26.9-25.5,35.8  c-4.2,3.2-8.8,5.9-13.7,8v-14.9v-29V78.6V64.9V50.5V20.9V6c4.9,2.2,9.4,4.9,13.7,8V31.8z" fill="#ee3d50" transform="translate(148.04706240000002 72)"/></g></g></g></svg>
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32" fill="none">
+  <polyline points="10 6 2 16 10 26" stroke="#ee3d50" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  <polyline points="22 6 30 16 22 26" stroke="#ee3d50" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  <line x1="19" y1="4" x2="13" y2="28" stroke="#ee3d50" stroke-width="2.5" stroke-linecap="round"/>
+</svg>

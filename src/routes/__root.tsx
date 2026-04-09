@@ -31,7 +31,7 @@ export const Route = createRootRoute({
     meta: [
       { charSet: 'utf-8' },
       { name: 'viewport', content: 'width=device-width, initial-scale=1' },
-      { title: 'Josh Lavallee | Dev Portfolio' },
+      { title: 'Josh Lavallee XYZ' },
     ],
     links: [
       { rel: 'icon', type: 'image/svg+xml', href: '/monogram.svg' },
