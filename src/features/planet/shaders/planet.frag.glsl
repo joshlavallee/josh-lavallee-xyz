@@ -159,88 +159,93 @@ vec3 deepLayer(vec3 p, float time) {
 // so boundaries are organic and turbulent, not flat blobs.
 
 vec4 greenLayer(vec3 p, float time) {
-  // Curl noise for spiral vortex structure
-  vec3 curl = curlNoise(p * uCurlScale + time * 0.3);
-  vec3 cp = p + curl * uCurlStrength;
+  // Large sweeping flow field - big, slow currents like Jupiter bands
+  vec3 macroFlow = curlNoise(p * 0.3 + time * 0.02) * 0.15;
+  vec3 mp = p + macroFlow;
 
-  // Anisotropic stretching: elongate features along the curl flow direction
-  // Creates wispy tendrils between vortex cores instead of uniform swirls
+  // Curl noise - lower frequency for bigger vortices
+  vec3 curl = curlNoise(mp * uCurlScale + time * 0.12);
+  vec3 cp = mp + curl * uCurlStrength;
+
+  // Subtle stretch for ridged noise only
   vec3 flowDir = normalize(curl + vec3(0.001));
-  float stretchAmount = length(curl) * 1.8;
-  vec3 stretched = cp + flowDir * stretchAmount * 0.15;
+  vec3 stretched = cp + flowDir * length(curl) * 0.06;
 
-  // 3-pass domain warping: creates thick, viscous "stirred paint" look
-  // Mix stretched coords into warping for directional flow
+  // 3-pass domain warping - slower time offsets for less movement
   float ws = uSwirlIntensity;
 
   vec3 w1 = vec3(
-    fbm3(stretched + time * 0.015),
-    fbm3(stretched + vec3(5.2, 1.3, 2.8) + time * 0.012),
-    fbm3(cp + vec3(9.1, 4.7, 1.3) + time * 0.01)
+    fbm3(cp + time * 0.006),
+    fbm3(cp + vec3(5.2, 1.3, 2.8) + time * 0.005),
+    fbm3(cp + vec3(9.1, 4.7, 1.3) + time * 0.004)
   );
   vec3 w2 = vec3(
-    fbm3(cp + w1 * ws + vec3(1.7, 9.2, 0.0) + time * 0.008),
-    fbm3(stretched + w1 * ws + vec3(8.3, 2.8, 3.1) + time * 0.009),
-    fbm3(cp + w1 * ws + vec3(2.1, 6.3, 7.4) + time * 0.007)
+    fbm3(cp + w1 * ws + vec3(1.7, 9.2, 0.0) + time * 0.003),
+    fbm3(cp + w1 * ws + vec3(8.3, 2.8, 3.1) + time * 0.004),
+    fbm3(cp + w1 * ws + vec3(2.1, 6.3, 7.4) + time * 0.003)
   );
   vec3 w3 = vec3(
-    fbm3(stretched + w2 * ws + vec3(3.1, 7.8, 2.3) + time * 0.005),
-    w2.z,  // reuse w2 component to save one fbm3 call
-    fbm3(stretched + w2 * ws + vec3(4.8, 3.9, 5.1) + time * 0.004)
+    fbm3(cp + w2 * ws + vec3(3.1, 7.8, 2.3) + time * 0.002),
+    w2.z,
+    fbm3(cp + w2 * ws + vec3(4.8, 3.9, 5.1) + time * 0.002)
   );
 
-  // Spatial variation mask: single noise sample is enough for a low-freq mask
-  float regionMask = snoise3D(p * 0.45 + vec3(13.7, 8.3, 21.1) + time * 0.002);
+  // Spatial variation mask for wispy vs smooth regions
+  float regionMask = snoise3D(p * 0.3 + vec3(13.7, 8.3, 21.1) + time * 0.001);
   regionMask = regionMask * 0.5 + 0.5;
 
-  // Blend between smooth FBM (swirls) and ridged noise (wispy filaments)
   vec3 warpedPos = cp + w3 * ws;
   float nSmooth = fbm5(warpedPos);
   nSmooth = nSmooth * 0.5 + 0.5;
 
-  // Single ridged noise sampled at a mix of warped + stretched coords for wispy filaments
   float nRidged = ridgedFbm3(mix(warpedPos, stretched + w3 * ws * 0.7, 0.4) + vec3(2.3, 0.0, 4.1));
 
-  // Composite noise: blend styles based on spatial region
-  // regionMask near 0 = smooth swirls, near 1 = wispy filaments
-  float wispyBlend = smoothstep(0.2, 0.55, regionMask);
-  float n = mix(nSmooth, nRidged, wispyBlend * 0.7);
+  float wispyBlend = smoothstep(0.12, 0.48, regionMask);
+  float n = mix(nSmooth, nRidged, 0.2 + wispyBlend * 0.3);
 
-  // Lift the floor so darks never go fully black, then apply contrast
-  n = mix(0.15, 1.0, n);
+  n = mix(0.0, 1.0, n);
   n = pow(n, uContrast);
 
-  // Heat map: low-freq noise on SAME warped coords determines amber regions
-  // Shares the turbulent flow so boundaries are organic, not flat blobs
-  // Polar mask: amber concentrated in top/bottom 30% of the sphere
-  float latitude = abs(normalize(vPosition).y);
-  float polarMask = smoothstep(0.1, 0.35, latitude);
-
-  float heat = fbm3(p * 0.7 + vec3(42.0, 17.0, 0.0) + time * 0.004);
+  // Amber heat map: large, diffuse warm storm regions
+  // Very low frequency for big patches, wide smoothstep for soft organic edges
+  float heat = fbm3(p * 0.18 + vec3(42.0, 17.0, 0.0) + time * 0.001);
   heat = heat * 0.5 + 0.5;
-  heat = smoothstep(0.5, 0.65, heat) * polarMask * uAmberIntensity;
+  heat = smoothstep(0.28, 0.58, heat) * uAmberIntensity;
 
-  // Green color ramp: softer shadows, more bright green coverage
-  vec3 crevice     = vec3(0.06, 0.22, 0.03);
-  vec3 deepGreen   = vec3(0.12, 0.38, 0.04);
-  vec3 midGreen    = vec3(0.18, 0.58, 0.06);
-  vec3 brightGreen = vec3(0.22, 0.72, 0.06);
-  vec3 yellowGreen = vec3(0.40, 0.78, 0.10);
+  // Green color ramp: near-black → deep forest → teal-green → bright → lime → yellow-green
+  vec3 darkForest   = vec3(0.01, 0.03, 0.005);
+  vec3 deepGreen    = vec3(0.03, 0.14, 0.015);
+  vec3 midGreen     = vec3(0.08, 0.35, 0.03);
+  vec3 brightGreen  = vec3(0.20, 0.62, 0.05);
+  vec3 limeGreen    = vec3(0.38, 0.78, 0.08);
+  vec3 yellowGreen  = vec3(0.55, 0.88, 0.15);
 
-  vec3 color = mix(crevice, deepGreen, smoothstep(0.0, 0.08, n));
-  color = mix(color, midGreen, smoothstep(0.06, 0.25, n));
-  color = mix(color, brightGreen, smoothstep(0.2, 0.45, n));
-  color = mix(color, yellowGreen, smoothstep(0.4, 0.7, n));
+  vec3 color = mix(darkForest, deepGreen, smoothstep(0.0, 0.1, n));
+  color = mix(color, midGreen, smoothstep(0.05, 0.25, n));
+  color = mix(color, brightGreen, smoothstep(0.2, 0.5, n));
+  color = mix(color, limeGreen, smoothstep(0.45, 0.72, n));
+  color = mix(color, yellowGreen, smoothstep(0.7, 0.95, n));
 
-  // Amber bleeds into crevices and mid-tones of hot regions
-  // Only affects low/mid noise values, bright green crests stay green
-  vec3 amberAbyss  = vec3(0.22, 0.10, 0.02);
-  vec3 amberDeep   = vec3(0.45, 0.22, 0.05);
-  vec3 amberBright = vec3(0.65, 0.38, 0.10);
-  vec3 amberColor  = mix(amberAbyss, amberDeep, smoothstep(0.0, 0.2, n));
-  amberColor = mix(amberColor, amberBright, smoothstep(0.15, 0.5, n));
-  float amberMask  = heat * (1.0 - smoothstep(0.35, 0.7, n));
-  color = mix(color, amberColor, amberMask);
+  // Amber: warm orange storm patches blending through yellow into the green
+  vec3 amberDark   = vec3(0.35, 0.16, 0.02);
+  vec3 amberMid    = vec3(0.60, 0.32, 0.06);
+  vec3 amberBright = vec3(0.80, 0.50, 0.12);
+  vec3 amberGlow   = vec3(0.92, 0.62, 0.18);
+  vec3 amberColor  = mix(amberDark, amberMid, smoothstep(0.0, 0.25, n));
+  amberColor = mix(amberColor, amberBright, smoothstep(0.2, 0.5, n));
+  amberColor = mix(amberColor, amberGlow, smoothstep(0.5, 0.8, n));
+
+  // Yellow transition zone between green and amber
+  vec3 yellowTrans = mix(color, vec3(0.55, 0.70, 0.10), heat * 0.5);
+  color = mix(color, yellowTrans, heat * 0.6);
+  color = mix(color, amberColor, heat * 0.9);
+
+  // Tonal variation: shift regions toward cool teal or warm yellow-green
+  float toneVar = snoise3D(p * 0.35 + vec3(7.3, 22.1, 4.8) + time * 0.001);
+  toneVar = toneVar * 0.5 + 0.5;
+  vec3 coolShift = color * vec3(0.75, 1.0, 0.9);
+  vec3 warmShift = color * vec3(1.1, 0.95, 0.7);
+  color = mix(color, mix(coolShift, warmShift, toneVar), 0.2);
 
   return vec4(color, 1.0);
 }
@@ -248,9 +253,9 @@ vec4 greenLayer(vec3 p, float time) {
 // ─── Main: three-layer compositing ───
 
 void main() {
-  vec3 p = vPosition * 1.2;
+  vec3 p = vPosition * 0.85;  // lower scale = bigger features
   vec3 eyeViewDir = normalize(vEyePos);
-  float time = uTime * 0.015;
+  float time = uTime * 0.008;  // much slower movement
 
   // Single full-quality atmosphere pass
   vec4 frontLayer = greenLayer(p, time);
@@ -259,11 +264,16 @@ void main() {
   vec3 objNormal = normalize(vPosition);
   float depthNoise = fbm3((p - objNormal * 0.04) * 0.8 + time * 0.003);
   depthNoise = depthNoise * 0.5 + 0.5;
-  vec3 underColor = mix(vec3(0.06, 0.20, 0.02), vec3(0.18, 0.50, 0.05), depthNoise);
+  vec3 underDark = vec3(0.02, 0.06, 0.005);
+  vec3 underBright = vec3(0.12, 0.38, 0.03);
+  vec3 underWarm = vec3(0.20, 0.10, 0.02);
+  float underHeat = snoise3D(p * 0.25 + vec3(15.0, 8.0, 3.0)) * 0.5 + 0.5;
+  vec3 underColor = mix(underDark, underBright, depthNoise);
+  underColor = mix(underColor, underWarm, smoothstep(0.5, 0.75, underHeat) * 0.45);
 
-  // Composite: cheap underlayer with full-detail front
-  vec3 color = underColor * 0.4;
-  color = mix(color, frontLayer.rgb, 0.8);
+  // Composite: rich underlayer with full-detail front
+  vec3 color = underColor * 0.5;
+  color = mix(color, frontLayer.rgb, 0.72);
 
   // Wrap lighting: soft terminator, shadow side never fully black
   vec3 sunDir = normalize(uSunDirection);
@@ -271,7 +281,7 @@ void main() {
   float lit = 0.65 * wrap;
 
   // Self-emission: atmosphere glows from within
-  float emission = uEmissionStrength * 0.35;
+  float emission = uEmissionStrength * 0.25;
 
   // Shadow side: desaturate and shift toward cold teal-green
   float shadowFactor = smoothstep(-0.2, 0.3, dot(vNormal, sunDir));
@@ -291,7 +301,7 @@ void main() {
   // Limb haze: aggressively reduce detail near edge, thick atmospheric scattering
   float limbHaze = pow(fresnel, 1.2);
   vec3 hazeColor = vec3(0.20, 0.75, 0.10);
-  finalColor = mix(finalColor, hazeColor * (lit + emission) * 0.6, limbHaze * 0.55);
+  finalColor = mix(finalColor, hazeColor * (lit + emission) * 0.6, limbHaze * 0.65);
 
   // Limb desaturation: lose color detail at the very edge
   float edgeFade = pow(fresnel, 3.0);

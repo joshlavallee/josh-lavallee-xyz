@@ -9,19 +9,19 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as PlaceholderRouteImport } from './routes/placeholder'
 import { Route as ParticlepegRouteImport } from './routes/particlepeg'
+import { Route as LostInSpaceRouteImport } from './routes/lost-in-space'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
 
-const PlaceholderRoute = PlaceholderRouteImport.update({
-  id: '/placeholder',
-  path: '/placeholder',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const ParticlepegRoute = ParticlepegRouteImport.update({
   id: '/particlepeg',
   path: '/particlepeg',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LostInSpaceRoute = LostInSpaceRouteImport.update({
+  id: '/lost-in-space',
+  path: '/lost-in-space',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AboutRoute = AboutRouteImport.update({
@@ -38,51 +38,51 @@ const IndexRoute = IndexRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/lost-in-space': typeof LostInSpaceRoute
   '/particlepeg': typeof ParticlepegRoute
-  '/placeholder': typeof PlaceholderRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/lost-in-space': typeof LostInSpaceRoute
   '/particlepeg': typeof ParticlepegRoute
-  '/placeholder': typeof PlaceholderRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/lost-in-space': typeof LostInSpaceRoute
   '/particlepeg': typeof ParticlepegRoute
-  '/placeholder': typeof PlaceholderRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/about' | '/particlepeg' | '/placeholder'
+  fullPaths: '/' | '/about' | '/lost-in-space' | '/particlepeg'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/about' | '/particlepeg' | '/placeholder'
-  id: '__root__' | '/' | '/about' | '/particlepeg' | '/placeholder'
+  to: '/' | '/about' | '/lost-in-space' | '/particlepeg'
+  id: '__root__' | '/' | '/about' | '/lost-in-space' | '/particlepeg'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AboutRoute: typeof AboutRoute
+  LostInSpaceRoute: typeof LostInSpaceRoute
   ParticlepegRoute: typeof ParticlepegRoute
-  PlaceholderRoute: typeof PlaceholderRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/placeholder': {
-      id: '/placeholder'
-      path: '/placeholder'
-      fullPath: '/placeholder'
-      preLoaderRoute: typeof PlaceholderRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/particlepeg': {
       id: '/particlepeg'
       path: '/particlepeg'
       fullPath: '/particlepeg'
       preLoaderRoute: typeof ParticlepegRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/lost-in-space': {
+      id: '/lost-in-space'
+      path: '/lost-in-space'
+      fullPath: '/lost-in-space'
+      preLoaderRoute: typeof LostInSpaceRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/about': {
@@ -105,8 +105,8 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
+  LostInSpaceRoute: LostInSpaceRoute,
   ParticlepegRoute: ParticlepegRoute,
-  PlaceholderRoute: PlaceholderRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

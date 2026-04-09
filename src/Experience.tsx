@@ -27,7 +27,7 @@ export default function Experience({ routePath, colorMode, uiStyle, photoIndex }
           photoIndex={photoIndex}
         />
       )}
-      {routePath === '/placeholder' && (
+      {routePath === '/lost-in-space' && (
         <PlanetScene colorMode={colorMode} uiStyle={uiStyle} />
       )}
     </>

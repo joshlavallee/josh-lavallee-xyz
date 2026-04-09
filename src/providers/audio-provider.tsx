@@ -3,6 +3,7 @@ import { createContext, useContext, useRef, useState, useCallback } from 'react'
 export const TRACKS = [
   { id: 'relax', label: 'Relax', src: '/audio/relax.mp3' },
   { id: 'chill', label: 'Chill', src: '/audio/chill.mp3' },
+  { id: 'space', label: 'Space', src: '/audio/space.mp3' },
 ]
 
 interface AudioContextValue {

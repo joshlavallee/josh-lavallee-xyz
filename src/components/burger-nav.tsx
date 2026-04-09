@@ -7,7 +7,7 @@ const NAV_ITEMS = [
   { to: '/' as const, label: 'Home', icon: Home },
   { to: '/about' as const, label: 'About', icon: PawPrint },
   { to: '/particlepeg' as const, label: 'Particle Peg', icon: Waypoints },
-  { to: '/placeholder' as const, label: 'Placeholder', icon: Box },
+  { to: '/lost-in-space' as const, label: 'Lost in Space', icon: Box },
 ]
 
 export default function BurgerNav() {
