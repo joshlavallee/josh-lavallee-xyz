@@ -5,7 +5,7 @@ import { cn } from '@/lib/utils'
 
 const NAV_ITEMS = [
   { to: '/' as const, label: 'Home', icon: Home },
-  { to: '/fetch' as const, label: 'Fetch', icon: PawPrint },
+  { to: '/fetch' as const, label: 'Fetch', icon: PawPrint, wip: true },
   { to: '/particlepeg' as const, label: 'Particle Peg', icon: Waypoints },
   { to: '/lost-in-space' as const, label: 'Lost in Space', icon: Globe },
 ]
@@ -95,6 +95,11 @@ export default function BurgerNav() {
                   >
                     <Icon className="size-4 shrink-0" />
                     {item.label}
+                    {'wip' in item && item.wip && (
+                      <span className="ml-auto rounded-full bg-amber-500/20 px-1.5 py-0.5 text-[10px] font-semibold leading-none text-amber-400">
+                        WIP
+                      </span>
+                    )}
                   </Link>
                 )
               })}
