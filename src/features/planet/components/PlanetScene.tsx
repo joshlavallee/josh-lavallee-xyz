@@ -3,7 +3,6 @@ import type { ColorMode, UIStyle } from '@/providers/theme-provider'
 import TauCetiPlanet from './TauCetiPlanet'
 import FloatGroup from './FloatGroup'
 import AstronautFigure from './AstronautFigure'
-import DogFigure from './DogFigure'
 
 interface PlanetSceneProps {
   colorMode: ColorMode
@@ -22,8 +21,8 @@ export default function PlanetScene({ colorMode: _colorMode, uiStyle: _uiStyle }
       />
       <color attach="background" args={['#020208']} />
 
-      {/* Planet shifted bottom-left */}
-      <group position={[-0.4, -0.3, 0]}>
+      {/* Planet shifted bottom-left, scaled up to fill space */}
+      <group position={[-0.7, -0.5, 0]} scale={1.5}>
         <TauCetiPlanet />
       </group>
 
@@ -32,9 +31,6 @@ export default function PlanetScene({ colorMode: _colorMode, uiStyle: _uiStyle }
         <AstronautFigure scale={0.04} />
       </FloatGroup>
 
-      <FloatGroup position={[0.3, 0.0, 1.15]} bobSpeed={0.4} swaySpeed={0.3}>
-        <DogFigure scale={0.03} />
-      </FloatGroup>
     </>
   )
 }
