@@ -19,7 +19,7 @@ void main() {
   float sunInfluence = max(dot(normal, sunDir) * 0.3 + 0.7, 0.0);
 
   vec3 glowColor = vec3(0.35, 1.0, 0.15) * sunInfluence;
-  float emission = uEmissionStrength * 0.08;
+  float emission = uEmissionStrength * 2.0;
   glowColor *= (0.3 + emission);
 
   // Discard face-on fragments entirely to avoid any flat color
