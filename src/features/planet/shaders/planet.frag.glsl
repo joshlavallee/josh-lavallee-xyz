@@ -181,8 +181,8 @@ vec4 greenLayer(vec3 p, float time) {
   vec3 deepGreen   = vec3(0.10, 0.38, 0.03);
   vec3 midGreen    = vec3(0.20, 0.67, 0.07);
   vec3 brightGreen = vec3(0.30, 0.90, 0.08);
-  vec3 yellowGreen = vec3(0.60, 1.05, 0.15);
-  vec3 neonPeak    = vec3(0.80, 1.25, 0.20);
+  vec3 yellowGreen = vec3(0.55, 0.95, 0.14);
+  vec3 neonPeak    = vec3(0.70, 1.10, 0.18);
 
   vec3 color = mix(crevice, deepGreen, smoothstep(0.0, 0.12, n));
   color = mix(color, midGreen, smoothstep(0.08, 0.35, n));
@@ -199,12 +199,6 @@ vec4 greenLayer(vec3 p, float time) {
   amberColor = mix(amberColor, amberBright, smoothstep(0.15, 0.5, n));
   float amberMask  = heat * (1.0 - smoothstep(0.35, 0.7, n));
   color = mix(color, amberColor, amberMask);
-
-  // Fine detail: high-freq noise adds brightness variation on crests
-  // Creates nested small eddies within the larger vortex structures
-  float fineDetail = snoise3D(cp * 5.0 + time * 0.1) * 0.5 + 0.5;
-  fineDetail = fineDetail * 0.15 * smoothstep(0.3, 0.7, n);
-  color += color * fineDetail;
 
   return vec4(color, 1.0);
 }

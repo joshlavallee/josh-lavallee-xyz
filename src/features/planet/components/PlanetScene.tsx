@@ -22,9 +22,9 @@ export default function PlanetScene({ colorMode: _colorMode, uiStyle: _uiStyle }
       <TauCetiPlanet />
       <EffectComposer>
         <Bloom
-          luminanceThreshold={0.6}
-          luminanceSmoothing={0.4}
-          intensity={0.8}
+          luminanceThreshold={0.75}
+          luminanceSmoothing={0.3}
+          intensity={0.4}
           mipmapBlur
         />
       </EffectComposer>
