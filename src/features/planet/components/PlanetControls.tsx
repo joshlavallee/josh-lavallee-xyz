@@ -5,32 +5,40 @@ import { planetSettings } from '../lib/planet-store'
 
 export default function PlanetControls() {
   const [isRedMode, setIsRedMode] = useState(planetSettings.redMode)
-  const [isFlashing, setIsFlashing] = useState(false)
-  const flashTimeout = useRef<ReturnType<typeof setTimeout>>(null)
+  const [blackout, setBlackout] = useState(false)
+  const transitioning = useRef(false)
 
   const toggle = useCallback(() => {
-    const next = !planetSettings.redMode
-    planetSettings.redMode = next
-    setIsRedMode(next)
+    if (transitioning.current) return
+    transitioning.current = true
 
-    if (next) {
-      setIsFlashing(true)
-      if (flashTimeout.current) clearTimeout(flashTimeout.current)
-      flashTimeout.current = setTimeout(() => setIsFlashing(false), 600)
-    }
+    const next = !planetSettings.redMode
+
+    // 1. Fade to black
+    setBlackout(true)
+
+    // 2. Once fully dark, switch the mode
+    setTimeout(() => {
+      planetSettings.redMode = next
+      setIsRedMode(next)
+    }, 120)
+
+    // 3. Fade back in
+    setTimeout(() => {
+      setBlackout(false)
+      transitioning.current = false
+    }, 250)
   }, [])
 
   return (
     <>
-      {/* Scene flash overlay */}
+      {/* Blackout overlay — sits below buttons (z-40) but above the canvas */}
       <div
-        className={cn(
-          'pointer-events-none fixed inset-0 z-40 transition-opacity',
-          isFlashing ? 'opacity-100' : 'opacity-0'
-        )}
+        className="pointer-events-none fixed inset-0 z-40 bg-black transition-opacity"
         style={{
-          background: 'radial-gradient(circle at center, rgba(255,60,40,0.25) 0%, rgba(180,20,10,0.12) 40%, transparent 70%)',
-          transitionDuration: isFlashing ? '80ms' : '500ms',
+          opacity: blackout ? 0.85 : 0,
+          transitionDuration: blackout ? '100ms' : '150ms',
+          transitionTimingFunction: blackout ? 'ease-in' : 'ease-out',
         }}
       />
 
