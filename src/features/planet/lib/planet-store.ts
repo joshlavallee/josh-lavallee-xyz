@@ -18,8 +18,8 @@ export const planetSettings: PlanetSettings = {
   raySteps: 12,
   shellThickness: 0.2,
   densityScale: 2.0,
-  curlScale: 2.8,
+  curlScale: 3.0,
   curlStrength: 0.2,
-  emissionStrength: 1.0,
-  contrast: 3.0,
+  emissionStrength: 1.2,
+  contrast: 2.8,
 }
