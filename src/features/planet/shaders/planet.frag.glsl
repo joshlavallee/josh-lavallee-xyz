@@ -180,15 +180,13 @@ vec4 greenLayer(vec3 p, float time) {
   vec3 crevice     = vec3(0.04, 0.18, 0.02);
   vec3 deepGreen   = vec3(0.10, 0.38, 0.03);
   vec3 midGreen    = vec3(0.20, 0.67, 0.07);
-  vec3 brightGreen = vec3(0.30, 0.90, 0.08);
-  vec3 yellowGreen = vec3(0.55, 0.95, 0.14);
-  vec3 neonPeak    = vec3(0.70, 1.10, 0.18);
+  vec3 brightGreen = vec3(0.27, 0.87, 0.07);
+  vec3 yellowGreen = vec3(0.53, 0.93, 0.13);
 
   vec3 color = mix(crevice, deepGreen, smoothstep(0.0, 0.12, n));
   color = mix(color, midGreen, smoothstep(0.08, 0.35, n));
-  color = mix(color, brightGreen, smoothstep(0.3, 0.60, n));
-  color = mix(color, yellowGreen, smoothstep(0.55, 0.80, n));
-  color = mix(color, neonPeak, smoothstep(0.80, 0.95, n));
+  color = mix(color, brightGreen, smoothstep(0.3, 0.65, n));
+  color = mix(color, yellowGreen, smoothstep(0.6, 0.9, n));
 
   // Amber bleeds into crevices and mid-tones of hot regions
   // Only affects low/mid noise values, bright green crests stay green
