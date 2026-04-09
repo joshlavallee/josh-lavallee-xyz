@@ -152,12 +152,12 @@ void main() {
   vec3 rAbyss  = vec3(0.03, 0.008, 0.008);
   vec3 rDeep   = vec3(0.08, 0.015, 0.012);
   vec3 rDark   = vec3(0.18, 0.03, 0.02);
-  vec3 rMid    = vec3(0.35, 0.06, 0.03);
-  vec3 rBright = vec3(0.55, 0.10, 0.04);
-  vec3 rHot    = vec3(0.72, 0.15, 0.05);
-  vec3 rGlow   = vec3(0.85, 0.22, 0.08);
-  vec3 rFlare  = vec3(0.95, 0.30, 0.10);
-  vec3 rWhite  = vec3(1.0, 0.45, 0.15);
+  vec3 rMid    = vec3(0.28, 0.05, 0.025);
+  vec3 rBright = vec3(0.40, 0.08, 0.03);
+  vec3 rHot    = vec3(0.52, 0.11, 0.04);
+  vec3 rGlow   = vec3(0.60, 0.15, 0.05);
+  vec3 rFlare  = vec3(0.68, 0.20, 0.07);
+  vec3 rWhite  = vec3(0.75, 0.28, 0.10);
 
   vec3 redColor;
   if (t < 0.05) redColor = mix(rAbyss, rDeep, t / 0.05);
@@ -189,7 +189,7 @@ void main() {
 
   // === BLEND ===
   vec3 baseGreen = mix(greenColor, orangeColor, orangeAmount);
-  vec3 color = mix(baseGreen, redColor, uRedMode);
+  vec3 color = mix(baseGreen, redColor * 0.60, uRedMode);
 
   // === DIRECTIONAL SUNLIGHT ===
   vec3 sunDir = normalize(uSunDirection);

@@ -2,6 +2,7 @@ attribute float aSpeed;
 attribute vec3 aDirection;
 
 uniform float uTime;
+uniform float uRedMode;
 
 varying float vAlpha;
 

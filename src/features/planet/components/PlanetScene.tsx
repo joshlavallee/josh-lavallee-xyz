@@ -1,6 +1,9 @@
+import { useRef } from "react";
+import { useFrame } from "@react-three/fiber";
 import { PerspectiveCamera } from "@react-three/drei";
-
+import * as THREE from "three";
 import type { ColorMode, UIStyle } from "@/providers/theme-provider";
+import { planetSettings } from "../lib/planet-store";
 import TauCetiPlanet from "./TauCetiPlanet";
 import Starfield from "./Starfield";
 import FloatGroup from "./FloatGroup";
@@ -9,6 +12,28 @@ import Astronaut from "./Astronaut";
 interface PlanetSceneProps {
   colorMode: ColorMode;
   uiStyle: UIStyle;
+}
+
+const GREEN_GLOW = new THREE.Color("#1a7a20");
+const RED_GLOW = new THREE.Color("#7a1a10");
+
+function GlowLight() {
+  const lightRef = useRef<THREE.PointLight>(null);
+  useFrame((_state, delta) => {
+    if (!lightRef.current) return;
+    const target = planetSettings.redMode ? RED_GLOW : GREEN_GLOW;
+    lightRef.current.color.lerp(target, Math.min(delta * 2.0, 1.0));
+  });
+  return (
+    <pointLight
+      ref={lightRef}
+      position={[1.5, -1.5, 0.5]}
+      intensity={0.4}
+      color="#1a7a20"
+      distance={4}
+      decay={2}
+    />
+  );
 }
 
 export default function PlanetScene({
@@ -26,14 +51,7 @@ export default function PlanetScene({
       />
       <Starfield />
 
-      {/* Planet glow — subtle green spill onto astronaut */}
-      <pointLight
-        position={[1.5, -1.5, 0.5]}
-        intensity={0.4}
-        color="#1a7a20"
-        distance={4}
-        decay={2}
-      />
+      <GlowLight />
 
       {/* Planet massive, limb arc filling bottom-right */}
       <group position={[3.0, -3.0, -2.5]} scale={6.0}>

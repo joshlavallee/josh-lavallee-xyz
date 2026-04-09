@@ -9,16 +9,18 @@ import { useGLTF } from '@react-three/drei'
 import * as THREE from 'three'
 import vertexShader from '../shaders/silhouette.vert.glsl?raw'
 import fragmentShader from '../shaders/astronaut.frag.glsl?raw'
+import { planetSettings } from '../lib/planet-store'
 
 // Green rim to reflect planet's atmospheric glow
-const RIM_COLOR = new THREE.Vector3(0.24, 0.78, 0.16)
+const GREEN_RIM = new THREE.Vector3(0.24, 0.78, 0.16)
+const RED_RIM = new THREE.Vector3(0.7, 0.12, 0.05)
 
 function useAstronautMaterial() {
   return useMemo(
     () =>
       new THREE.ShaderMaterial({
         uniforms: {
-          uRimColor: { value: RIM_COLOR },
+          uRimColor: { value: GREEN_RIM.clone() },
           uRimPower: { value: 2.5 },
           uRimIntensity: { value: 0.8 },
         },
@@ -61,6 +63,11 @@ export default function Astronaut({
 
   useFrame((_state, delta) => {
     if (!groupRef.current) return
+
+    // Lerp rim color between green and red
+    const targetRim = planetSettings.redMode ? RED_RIM : GREEN_RIM
+    const rimColor = material.uniforms.uRimColor.value as THREE.Vector3
+    rimColor.lerp(targetRim, Math.min(delta * 2.0, 1.0))
 
     // Lerp toward current mouse position for smooth feel
     const lerpFactor = 1 - Math.pow(0.05, delta)

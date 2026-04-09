@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Globe } from 'lucide-react'
+import { Atom } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { planetSettings } from '../lib/planet-store'
 
@@ -23,7 +23,7 @@ export default function PlanetControls() {
         )}
         aria-label={isRedMode ? 'Disable red spectrum' : 'Enable red spectrum'}
       >
-        <Globe className="size-5" />
+        <Atom className="size-5" />
       </button>
     </div>
   )

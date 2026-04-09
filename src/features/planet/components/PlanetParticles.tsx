@@ -46,13 +46,16 @@ function PlanetParticles() {
 
     return {
       geometry: geo,
-      uniforms: { uTime: { value: 0 } },
+      uniforms: { uTime: { value: 0 }, uRedMode: { value: 0 } },
     }
   }, [])
 
   useFrame((_state, delta) => {
     if (!materialRef.current) return
     materialRef.current.uniforms.uTime.value += delta * 0.5
+    const target = planetSettings.redMode ? 1.0 : 0.0
+    const current = materialRef.current.uniforms.uRedMode.value
+    materialRef.current.uniforms.uRedMode.value += (target - current) * Math.min(delta * 2.0, 1.0)
   })
 
   return (
@@ -70,7 +73,7 @@ function PlanetParticles() {
   )
 }
 
-const RED_PARTICLE_COUNT = 2000
+const RED_PARTICLE_COUNT = 12000
 
 function RedModeParticles() {
   const materialRef = useRef<THREE.ShaderMaterial>(null)
@@ -81,15 +84,28 @@ function RedModeParticles() {
     const directions = new Float32Array(RED_PARTICLE_COUNT * 3)
     const sizes = new Float32Array(RED_PARTICLE_COUNT)
 
-    for (let i = 0; i < RED_PARTICLE_COUNT; i++) {
-      const theta = Math.random() * Math.PI * 2
-      const phi = Math.acos(2 * Math.random() - 1)
-      const x = Math.sin(phi) * Math.cos(theta)
-      const y = Math.sin(phi) * Math.sin(theta)
-      const z = Math.cos(phi)
+    // Camera-facing direction in planet local space
+    // Planet is at [3, -3, -2.5], camera at [0, 0, 3], planet has Z rotation of PI/2
+    // Bias particles toward the visible hemisphere
+    const viewDir = { x: -0.37, y: 0.37, z: 0.68 }
 
-      // Spread particles from surface out to varied distances
-      const dist = 1.0 + Math.random() * 0.12
+    for (let i = 0; i < RED_PARTICLE_COUNT; i++) {
+      let x: number, y: number, z: number
+
+      // Rejection sample: heavily bias toward camera-facing hemisphere
+      do {
+        const theta = Math.random() * Math.PI * 2
+        const phi = Math.acos(2 * Math.random() - 1)
+        x = Math.sin(phi) * Math.cos(theta)
+        y = Math.sin(phi) * Math.sin(theta)
+        z = Math.cos(phi)
+      } while (
+        x * viewDir.x + y * viewDir.y + z * viewDir.z < -0.2 &&
+        Math.random() > 0.1
+      )
+
+      // Spread particles from surface out further — visible over planet face
+      const dist = 1.0 + Math.random() * 0.25
       positions[i * 3] = x * dist
       positions[i * 3 + 1] = y * dist
       positions[i * 3 + 2] = z * dist

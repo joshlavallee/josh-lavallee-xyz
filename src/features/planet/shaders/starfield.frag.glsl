@@ -1,4 +1,5 @@
 uniform float uTime;
+uniform float uRedMode;
 
 varying vec3 vDirection;
 
@@ -61,9 +62,9 @@ vec3 stars(vec3 p) {
     // Twinkle
     brightness *= 0.8 + 0.2 * sin(uTime * (1.0 + rand3 * 3.0) + rand2 * 6.28);
 
-    // Star color: mix between warm orange and cool blue
-    vec3 warmStar = vec3(1.0, 0.5, 0.15);
-    vec3 coolStar = vec3(0.7, 0.85, 1.0);
+    // Star color: shifts to reds in red mode
+    vec3 warmStar = mix(vec3(1.0, 0.5, 0.15), vec3(1.0, 0.2, 0.08), uRedMode);
+    vec3 coolStar = mix(vec3(0.7, 0.85, 1.0), vec3(0.9, 0.15, 0.05), uRedMode);
     vec3 starColor = mix(warmStar, coolStar, rand2) * 0.3 + 1.0;
 
     c += brightness * starColor;
