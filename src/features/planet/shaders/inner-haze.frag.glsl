@@ -12,24 +12,21 @@ void main() {
   vec3 nPos = normalize(vPosition);
   float rim = 1.0 - max(dot(vNormal, viewDir), 0.0);
 
-  // Sun-aware: haze more visible on lit side
+  // Sun-aware
   float sunDot = max(dot(nPos, normalize(uSunDirection)), 0.0);
   float sunFactor = 0.3 + 0.7 * sunDot;
 
-  // Noise wisps
-  float wisps = snoise(nPos * 4.0 + vec3(uTime * 0.015, 0.0, 0.0)) * 0.5 + 0.5;
-  float detail = snoise(nPos * 10.0 + vec3(0.0, uTime * 0.008, 0.0)) * 0.5 + 0.5;
-  float noiseVal = wisps * 0.6 + detail * 0.4;
+  // Very subtle inner haze — just a whisper near the limb
+  float haze = pow(rim, 4.0) * 0.04;
+  haze += pow(rim, 7.0) * 0.03;
 
-  // Thicker haze that extends further across the planet face
-  float haze = smoothstep(0.25, 0.9, rim) * 0.10;
-  haze += pow(rim, 2.5) * 0.18;
-  haze += pow(rim, 5.0) * 0.12;
+  // Wispy noise
+  float wisps = snoise(nPos * 6.0 + vec3(uTime * 0.01, 0.0, 0.0)) * 0.5 + 0.5;
 
   float alpha = haze * sunFactor;
-  alpha *= 0.6 + 0.4 * noiseVal;
+  alpha *= 0.7 + 0.3 * wisps;
 
-  vec3 col = vec3(0.08, 0.35, 0.09);
+  vec3 col = vec3(0.05, 0.28, 0.07);
 
   gl_FragColor = vec4(col, alpha);
 }

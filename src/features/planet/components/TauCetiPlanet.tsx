@@ -8,6 +8,7 @@ import atmoFragShader from '../shaders/atmosphere.frag.glsl?raw'
 import innerHazeFragShader from '../shaders/inner-haze.frag.glsl?raw'
 import noise3d from '../shaders/noise3d.glsl?raw'
 import { planetSettings } from '../lib/planet-store'
+import PlanetParticles from './PlanetParticles'
 
 const SUN_DIRECTION = new THREE.Vector3(0.6, 0.3, 0.8).normalize()
 
@@ -78,7 +79,7 @@ export default function TauCetiPlanet() {
       </mesh>
       {/* Outer atmosphere glow — thick, noise-textured, sun-aware */}
       <mesh>
-        <sphereGeometry args={[1.06, 48, 48]} />
+        <sphereGeometry args={[1.025, 48, 48]} />
         <shaderMaterial
           ref={outerAtmoRef}
           uniforms={atmoUniforms}
@@ -91,7 +92,7 @@ export default function TauCetiPlanet() {
       </mesh>
       {/* Inner atmospheric haze — textured wisps */}
       <mesh>
-        <sphereGeometry args={[1.03, 48, 48]} />
+        <sphereGeometry args={[1.012, 48, 48]} />
         <shaderMaterial
           ref={innerAtmoRef}
           uniforms={innerAtmoUniforms}
@@ -102,6 +103,8 @@ export default function TauCetiPlanet() {
           depthWrite={false}
         />
       </mesh>
+      {/* Particles drifting off the planet surface */}
+      <PlanetParticles />
     </group>
   )
 }
