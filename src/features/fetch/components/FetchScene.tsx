@@ -1,5 +1,6 @@
 import { useRef, useEffect } from 'react'
 import { useThree, useFrame } from '@react-three/fiber'
+import { Html } from '@react-three/drei'
 import * as THREE from 'three'
 import type { SceneProps } from '@/features/photography/types'
 import useInput from '../hooks/useInput'
@@ -9,9 +10,10 @@ import Dog from './Dog'
 import GrassField from './GrassField'
 import DayEnvironment from './DayEnvironment'
 import NightEnvironment from './NightEnvironment'
+import VirtualJoystick from './VirtualJoystick'
 
 export default function FetchScene({ colorMode }: SceneProps) {
-  const input = useInput()
+  const { state: input, setJoystick } = useInput()
   const butterflyRef = useRef<THREE.Group>(null!)
   const sphereRef = useRef<THREE.Group>(null!)
   const dogPositionRef = useRef(new THREE.Vector3())
@@ -66,6 +68,9 @@ export default function FetchScene({ colorMode }: SceneProps) {
         idleState={idleState}
         dogHeadPosition={dogHeadPosition}
       />
+      <Html fullscreen style={{ pointerEvents: 'none' }}>
+        <VirtualJoystick onInput={setJoystick} />
+      </Html>
     </>
   )
 }
