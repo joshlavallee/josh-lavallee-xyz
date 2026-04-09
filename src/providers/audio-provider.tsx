@@ -1,9 +1,9 @@
-import { createContext, useContext, useRef, useState, useCallback } from 'react'
+import { createContext, useContext, useRef, useState, useCallback, useEffect } from 'react'
 
 export const TRACKS = [
+  { id: 'space', label: 'Space', src: '/audio/space.mp3' },
   { id: 'relax', label: 'Relax', src: '/audio/relax.mp3' },
   { id: 'chill', label: 'Chill', src: '/audio/chill.mp3' },
-  { id: 'space', label: 'Space', src: '/audio/space.mp3' },
 ]
 
 interface AudioContextValue {
@@ -28,14 +28,14 @@ function getInitialVolume(): number {
     const parsed = parseFloat(stored)
     if (!isNaN(parsed) && parsed >= 0 && parsed <= 1) return parsed
   }
-  return 0.5
+  return 0.25
 }
 
 function getInitialTrack(): string {
   if (typeof window === 'undefined') return TRACKS[0].id
   const stored = localStorage.getItem(TRACK_KEY)
   if (stored && TRACKS.some((t) => t.id === stored)) return stored
-  return TRACKS[0].id
+  return 'space'
 }
 
 function getTrackSrc(id: string): string {
@@ -132,6 +132,37 @@ export default function AudioProvider({ children }: { children: React.ReactNode 
       audio.loop = true
     }
   }, [track, isPlaying, volume, fade])
+
+  // Auto-play: try immediately, fall back to first interaction if browser blocks
+  useEffect(() => {
+    let started = false
+    function startAudio() {
+      if (started) return
+      started = true
+      const audio = getAudio()
+      audio.volume = 0
+      audio.play().then(() => {
+        fade(audio, volume)
+        setIsPlaying(true)
+        cleanup()
+      }).catch(() => {
+        // Browser blocked — will retry on first interaction
+        started = false
+      })
+    }
+    function cleanup() {
+      document.removeEventListener('click', startAudio)
+      document.removeEventListener('keydown', startAudio)
+      document.removeEventListener('touchstart', startAudio)
+    }
+    // Try immediately
+    startAudio()
+    // Also listen for first interaction as fallback
+    document.addEventListener('click', startAudio)
+    document.addEventListener('keydown', startAudio)
+    document.addEventListener('touchstart', startAudio)
+    return cleanup
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <AudioContext value={{ isPlaying, volume, track, toggle, setVolume, setTrack }}>
