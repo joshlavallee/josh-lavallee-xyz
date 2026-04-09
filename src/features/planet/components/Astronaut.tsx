@@ -3,15 +3,15 @@
  * https://sketchfab.com/3d-models/12184db58b1f44c987537b5607c32098
  * License: CC-BY 4.0
  */
-import { useRef, useMemo } from 'react'
+import { useRef, useEffect, useMemo } from 'react'
 import { useFrame, useThree } from '@react-three/fiber'
 import { useGLTF } from '@react-three/drei'
 import * as THREE from 'three'
 import vertexShader from '../shaders/silhouette.vert.glsl?raw'
-import fragmentShader from '../shaders/silhouette.frag.glsl?raw'
+import fragmentShader from '../shaders/astronaut.frag.glsl?raw'
 
-// Warm orange-green rim to reflect planet glow
-const RIM_COLOR = new THREE.Vector3(0.85, 0.55, 0.15)
+// Green rim to reflect planet's atmospheric glow
+const RIM_COLOR = new THREE.Vector3(0.24, 0.78, 0.16)
 
 function useAstronautMaterial() {
   return useMemo(
@@ -43,11 +43,15 @@ export default function Astronaut({
   const material = useAstronautMaterial()
   const { pointer } = useThree()
 
+  // Store base position in a ref so useFrame always has the latest value
+  const basePos = useRef(position)
+  basePos.current = position
+
   // Smooth mouse tracking values
   const smoothMouse = useRef({ x: 0, y: 0 })
 
   // Apply custom material to all meshes in the model
-  useMemo(() => {
+  useEffect(() => {
     scene.traverse((child) => {
       if (child instanceof THREE.Mesh) {
         child.material = material
@@ -71,13 +75,14 @@ export default function Astronaut({
     groupRef.current.rotation.x = -my * 0.1
 
     // Gentle drift — mouse position nudges the astronaut
-    groupRef.current.position.x = position[0] + mx * 0.08
-    groupRef.current.position.y = position[1] + my * 0.05
-    groupRef.current.position.z = position[2]
+    const bp = basePos.current
+    groupRef.current.position.x = bp[0] + mx * 0.08
+    groupRef.current.position.y = bp[1] + my * 0.05
+    groupRef.current.position.z = bp[2]
   })
 
   return (
-    <group ref={groupRef} position={position} scale={scale}>
+    <group ref={groupRef} scale={scale} dispose={null}>
       <primitive object={scene} />
     </group>
   )

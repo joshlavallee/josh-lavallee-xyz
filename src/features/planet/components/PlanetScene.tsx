@@ -1,16 +1,19 @@
-import { PerspectiveCamera } from '@react-three/drei'
-import type { ColorMode, UIStyle } from '@/providers/theme-provider'
-import TauCetiPlanet from './TauCetiPlanet'
-import Starfield from './Starfield'
-import FloatGroup from './FloatGroup'
-import Astronaut from './Astronaut'
+import { PerspectiveCamera } from "@react-three/drei";
+import type { ColorMode, UIStyle } from "@/providers/theme-provider";
+import TauCetiPlanet from "./TauCetiPlanet";
+import Starfield from "./Starfield";
+import FloatGroup from "./FloatGroup";
+import Astronaut from "./Astronaut";
 
 interface PlanetSceneProps {
-  colorMode: ColorMode
-  uiStyle: UIStyle
+  colorMode: ColorMode;
+  uiStyle: UIStyle;
 }
 
-export default function PlanetScene({ colorMode: _colorMode, uiStyle: _uiStyle }: PlanetSceneProps) {
+export default function PlanetScene({
+  colorMode: _colorMode,
+  uiStyle: _uiStyle,
+}: PlanetSceneProps) {
   return (
     <>
       <PerspectiveCamera
@@ -22,22 +25,24 @@ export default function PlanetScene({ colorMode: _colorMode, uiStyle: _uiStyle }
       />
       <Starfield />
 
-      {/* Planet massive, limb arc from left-center to bottom-right */}
-      <group position={[-3.0, 3.0, -2.5]} scale={6.0}>
+      {/* Planet massive, limb arc filling bottom-right */}
+      <group position={[3.0, -3.0, -2.5]} scale={6.0}>
         <TauCetiPlanet />
       </group>
 
-      {/* Floating astronaut near the planet's visible edge */}
+      {/* Floating astronaut facing us, upper-left near planet edge */}
       <FloatGroup
-        position={[1.2, -0.8, 0.5]}
-        bobSpeed={0.3}
+        position={[-1.75, 0.25, 0.5]}
+        bobSpeed={1}
         bobAmplitude={0.015}
         swaySpeed={0.2}
-        swayAmplitude={0.008}
-        rotationSpeed={0.04}
+        swayAmplitude={0.005}
+        rotationSpeed={1}
       >
-        <Astronaut scale={0.15} />
+        <group rotation={[-Math.PI / 2.5, -2.5, 0.75]}>
+          <Astronaut scale={0.175} />
+        </group>
       </FloatGroup>
     </>
-  )
+  );
 }
