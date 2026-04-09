@@ -20,14 +20,6 @@ interface SliderGroup {
 
 const SLIDER_GROUPS: SliderGroup[] = [
   {
-    label: 'Raymarching',
-    sliders: [
-      { key: 'raySteps', label: 'Ray Steps', min: 4, max: 24, step: 1, labelLow: 'Fast', labelHigh: 'Quality' },
-      { key: 'shellThickness', label: 'Shell Thickness', min: 0.05, max: 0.5, step: 0.01, labelLow: 'Thin', labelHigh: 'Deep' },
-      { key: 'densityScale', label: 'Density Scale', min: 0.5, max: 5.0, step: 0.1, labelLow: 'Transparent', labelHigh: 'Opaque' },
-    ],
-  },
-  {
     label: 'Curl Noise / Vortex',
     sliders: [
       { key: 'curlScale', label: 'Curl Scale', min: 0.5, max: 4.0, step: 0.1, labelLow: 'Large storms', labelHigh: 'Tight spirals' },
