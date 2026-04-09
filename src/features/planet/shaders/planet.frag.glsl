@@ -149,12 +149,12 @@ vec3 amberLayer(vec3 p, float time) {
   n = n * 0.5 + 0.5;
   n = pow(n, 0.8);
 
-  vec3 deepAmber    = vec3(0.87, 0.53, 0.13);
-  vec3 brightOrange = vec3(1.0, 0.67, 0.20);
-  vec3 palePeach    = vec3(1.0, 0.80, 0.53);
+  vec3 deepAmber    = vec3(0.50, 0.25, 0.06);
+  vec3 brightOrange = vec3(0.70, 0.38, 0.08);
+  vec3 warmCore     = vec3(0.85, 0.50, 0.12);
 
   vec3 color = mix(deepAmber, brightOrange, smoothstep(0.2, 0.6, n));
-  color = mix(color, palePeach, smoothstep(0.7, 1.0, n));
+  color = mix(color, warmCore, smoothstep(0.75, 1.0, n));
   return color;
 }
 
@@ -191,24 +191,28 @@ vec4 greenLayer(vec3 p, float time) {
   n = n * 0.5 + 0.5;
   n = pow(n, uContrast);
 
-  // Green color ramp: deep saturated → vivid radioactive → yellow-green
+  // Green color ramp: deep crevice shadows → vivid radioactive → yellow-green
+  vec3 crevice     = vec3(0.01, 0.08, 0.0);
   vec3 deepGreen   = vec3(0.05, 0.33, 0.0);
   vec3 midGreen    = vec3(0.20, 0.67, 0.07);
   vec3 brightGreen = vec3(0.27, 0.87, 0.07);
   vec3 yellowGreen = vec3(0.53, 0.93, 0.13);
 
-  vec3 color = mix(deepGreen, midGreen, smoothstep(0.0, 0.35, n));
+  // Dark crevices create depth illusion between cloud folds
+  vec3 color = mix(crevice, deepGreen, smoothstep(0.0, 0.12, n));
+  color = mix(color, midGreen, smoothstep(0.08, 0.35, n));
   color = mix(color, brightGreen, smoothstep(0.3, 0.65, n));
   color = mix(color, yellowGreen, smoothstep(0.6, 0.9, n));
 
-  // Opacity map: separate low-frequency noise controls where green thins
-  float opNoise = fbm3(p * 0.5 + vec3(42.0, 17.0, 0.0) + time * 0.005);
+  // Opacity map: higher frequency for smaller, more concentrated hot spots
+  float opNoise = fbm3(p * 0.9 + vec3(42.0, 17.0, 0.0) + time * 0.005);
   opNoise = opNoise * 0.5 + 0.5;
 
-  // amberIntensity: higher = green thins more, more amber hot spots visible
+  // amberIntensity: higher = green thins more, revealing amber beneath
+  // Raised thresholds so green covers more surface, amber patches are smaller
   float opacity = smoothstep(
-    0.15 + uAmberIntensity * 0.35,
-    0.55 + uAmberIntensity * 0.15,
+    0.25 + uAmberIntensity * 0.2,
+    0.48 + uAmberIntensity * 0.15,
     opNoise
   );
 
@@ -243,8 +247,10 @@ void main() {
   float wrap = pow(max(dot(vNormal, sunDir) * 0.5 + 0.5, 0.0), 1.5);
   float lit = 0.65 * wrap;
 
-  // Self-emission: entire surface glows, orange hot spots glow stronger
-  float emission = uEmissionStrength * 0.35;
+  // Self-emission: green glows strongly, amber is subdued furnace glow
+  float greenGlow = uEmissionStrength * 0.4 * green.a;
+  float amberGlow = uEmissionStrength * 0.08 * (1.0 - green.a);
+  float emission = greenGlow + amberGlow;
 
   // Shadow side: desaturate and shift toward cold teal-green
   float shadowFactor = smoothstep(-0.2, 0.3, dot(vNormal, sunDir));
