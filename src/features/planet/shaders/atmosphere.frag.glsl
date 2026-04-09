@@ -1,5 +1,6 @@
 uniform vec3 uSunDirection;
 uniform float uTime;
+uniform float uRedMode;
 
 varying vec3 vNormal;
 varying vec3 vWorldPosition;
@@ -38,10 +39,15 @@ void main() {
   float alpha = (glow + edge + outerFade + auroraAlpha) * sunFactor;
   alpha *= 0.8 + 0.2 * noise;
 
-  // Soft green with slight color shift in aurora bands
-  vec3 baseGreen = vec3(0.06, 0.30, 0.08);
-  vec3 auroraColor = vec3(0.08, 0.45, 0.15);
-  vec3 color = mix(baseGreen, auroraColor, aurora * pow(rim, 2.0));
+  // Color shifts between green and red based on mode
+  vec3 greenBase = vec3(0.06, 0.30, 0.08);
+  vec3 greenAurora = vec3(0.08, 0.45, 0.15);
+  vec3 redBase = vec3(0.35, 0.06, 0.03);
+  vec3 redAurora = vec3(0.50, 0.10, 0.05);
+
+  vec3 base = mix(greenBase, redBase, uRedMode);
+  vec3 auroraCol = mix(greenAurora, redAurora, uRedMode);
+  vec3 color = mix(base, auroraCol, aurora * pow(rim, 2.0));
 
   gl_FragColor = vec4(color, alpha);
 }

@@ -29,6 +29,7 @@ export default function TauCetiPlanet() {
       uHeatAmount: { value: planetSettings.heatAmount },
       uPolarBias: { value: planetSettings.polarBias },
       uEmissionStrength: { value: planetSettings.emissionStrength },
+      uRedMode: { value: 0 },
       uSunDirection: { value: SUN_DIRECTION },
     }),
     []
@@ -38,6 +39,7 @@ export default function TauCetiPlanet() {
     () => ({
       uSunDirection: { value: SUN_DIRECTION },
       uTime: { value: 0 },
+      uRedMode: { value: 0 },
     }),
     []
   )
@@ -46,6 +48,7 @@ export default function TauCetiPlanet() {
     () => ({
       uSunDirection: { value: SUN_DIRECTION },
       uTime: { value: 0 },
+      uRedMode: { value: 0 },
     }),
     []
   )
@@ -60,10 +63,21 @@ export default function TauCetiPlanet() {
     u.uPolarBias.value = planetSettings.polarBias
     u.uEmissionStrength.value = planetSettings.emissionStrength
 
-    // Sync time to atmosphere layers
+    // Smooth lerp toward target red mode
+    const targetRed = planetSettings.redMode ? 1.0 : 0.0
+    const currentRed = u.uRedMode.value
+    u.uRedMode.value += (targetRed - currentRed) * Math.min(delta * 2.0, 1.0)
+
+    // Sync time and red mode to atmosphere layers
     const t = u.uTime.value
-    if (outerAtmoRef.current) outerAtmoRef.current.uniforms.uTime.value = t
-    if (innerAtmoRef.current) innerAtmoRef.current.uniforms.uTime.value = t
+    if (outerAtmoRef.current) {
+      outerAtmoRef.current.uniforms.uTime.value = t
+      outerAtmoRef.current.uniforms.uRedMode.value = u.uRedMode.value
+    }
+    if (innerAtmoRef.current) {
+      innerAtmoRef.current.uniforms.uTime.value = t
+      innerAtmoRef.current.uniforms.uRedMode.value = u.uRedMode.value
+    }
   })
 
   return (

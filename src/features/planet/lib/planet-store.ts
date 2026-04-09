@@ -3,6 +3,7 @@ export interface PlanetSettings {
   heatAmount: number
   polarBias: number
   emissionStrength: number
+  redMode: boolean
 }
 
 export const planetSettings: PlanetSettings = {
@@ -10,4 +11,5 @@ export const planetSettings: PlanetSettings = {
   heatAmount: 1.2,
   polarBias: 0.0,
   emissionStrength: 0.33,
+  redMode: false,
 }

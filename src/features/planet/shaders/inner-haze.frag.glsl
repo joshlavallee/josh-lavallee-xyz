@@ -1,5 +1,6 @@
 uniform vec3 uSunDirection;
 uniform float uTime;
+uniform float uRedMode;
 
 varying vec3 vNormal;
 varying vec3 vWorldPosition;
@@ -26,7 +27,7 @@ void main() {
   float alpha = haze * sunFactor;
   alpha *= 0.7 + 0.3 * wisps;
 
-  vec3 col = vec3(0.05, 0.28, 0.07);
+  vec3 col = mix(vec3(0.05, 0.28, 0.07), vec3(0.30, 0.05, 0.03), uRedMode);
 
   gl_FragColor = vec4(col, alpha);
 }

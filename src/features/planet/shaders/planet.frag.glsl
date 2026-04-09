@@ -3,6 +3,7 @@ uniform float uWarpStrength;
 uniform float uHeatAmount;
 uniform float uPolarBias;
 uniform float uEmissionStrength;
+uniform float uRedMode;
 uniform vec3 uSunDirection;
 
 varying vec3 vNormal;
@@ -147,6 +148,27 @@ void main() {
   else if (t < 0.74) greenColor = mix(gBright, gLime, (t - 0.58) / 0.16);
   else greenColor = mix(gLime, gYellow, (t - 0.74) / 0.26);
 
+  // === RED RAMP (for red mode) ===
+  vec3 rAbyss  = vec3(0.03, 0.008, 0.008);
+  vec3 rDeep   = vec3(0.08, 0.015, 0.012);
+  vec3 rDark   = vec3(0.18, 0.03, 0.02);
+  vec3 rMid    = vec3(0.35, 0.06, 0.03);
+  vec3 rBright = vec3(0.55, 0.10, 0.04);
+  vec3 rHot    = vec3(0.72, 0.15, 0.05);
+  vec3 rGlow   = vec3(0.85, 0.22, 0.08);
+  vec3 rFlare  = vec3(0.95, 0.30, 0.10);
+  vec3 rWhite  = vec3(1.0, 0.45, 0.15);
+
+  vec3 redColor;
+  if (t < 0.05) redColor = mix(rAbyss, rDeep, t / 0.05);
+  else if (t < 0.12) redColor = mix(rDeep, rDark, (t - 0.05) / 0.07);
+  else if (t < 0.20) redColor = mix(rDark, rMid, (t - 0.12) / 0.08);
+  else if (t < 0.32) redColor = mix(rMid, rBright, (t - 0.20) / 0.12);
+  else if (t < 0.46) redColor = mix(rBright, rHot, (t - 0.32) / 0.14);
+  else if (t < 0.58) redColor = mix(rHot, rGlow, (t - 0.46) / 0.12);
+  else if (t < 0.74) redColor = mix(rGlow, rFlare, (t - 0.58) / 0.16);
+  else redColor = mix(rFlare, rWhite, (t - 0.74) / 0.26);
+
   // === ORANGE RAMP ===
   vec3 oBrown  = vec3(0.04, 0.015, 0.004);
   vec3 oDark   = vec3(0.14, 0.05, 0.008);
@@ -166,7 +188,8 @@ void main() {
   else orangeColor = mix(oGlow, oGlow * 1.1, (t - 0.75) / 0.25);
 
   // === BLEND ===
-  vec3 color = mix(greenColor, orangeColor, orangeAmount);
+  vec3 baseGreen = mix(greenColor, orangeColor, orangeAmount);
+  vec3 color = mix(baseGreen, redColor, uRedMode);
 
   // === DIRECTIONAL SUNLIGHT ===
   vec3 sunDir = normalize(uSunDirection);
