@@ -1,7 +1,6 @@
 import { useRef, useState, useCallback } from 'react'
-import { createPortal } from 'react-dom'
 import { useFrame, useThree } from '@react-three/fiber'
-import { Stars } from '@react-three/drei'
+import { Stars, Html } from '@react-three/drei'
 import * as THREE from 'three'
 import type { SceneProps } from '@/features/photography/types'
 import BiomeSelector from './BiomeSelector'
@@ -219,13 +218,12 @@ export default function FetchScene({ colorMode }: SceneProps) {
         positionRef={dogPosition}
         isIdle={isIdle}
       />
-      {createPortal(
-        <>
+      <Html fullscreen style={{ pointerEvents: 'none' }}>
+        <div style={{ pointerEvents: 'auto' }}>
           <BiomeSelector currentIndex={biomeIdx} onBiomeChange={handleBiomeChange} />
           <VirtualJoystick onInput={handleJoystickInput} />
-        </>,
-        document.body,
-      )}
+        </div>
+      </Html>
     </>
   )
 }
