@@ -5,6 +5,7 @@ import * as THREE from 'three'
 import type { SceneProps } from '@/features/photography/types'
 import GrassField from './GrassField'
 import Butterfly from './Butterfly'
+import Dog from './Dog'
 import { useInput } from '../hooks/useInput'
 import { BIOMES, DEFAULT_BIOME_INDEX } from '../lib/biomes'
 
@@ -142,6 +143,10 @@ export default function FetchScene({ colorMode }: SceneProps) {
       />
 
       <Butterfly input={input} positionRef={butterflyPosition} />
+      <Dog
+        butterflyPosition={butterflyPosition}
+        positionRef={dogPosition}
+      />
     </>
   )
 }
