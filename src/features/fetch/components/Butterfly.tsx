@@ -9,7 +9,7 @@ type GLTFResult = GLTF & {
   materials: { None: THREE.MeshStandardMaterial }
 }
 
-const LEAD_DISTANCE = 3.0
+const LEAD_DISTANCE = 2.0
 const LEAD_HEIGHT = 1.8
 
 interface ButterflyProps {
