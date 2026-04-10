@@ -15,17 +15,18 @@ const HOVER_HEIGHT_OFFSET = 1.5
 interface ButterflyProps {
   input: React.RefObject<{ x: number; y: number; active: boolean }>
   sphereRadius: number
+  yOffset?: number
   isIdle: React.RefObject<boolean>
   dogWorldPosition: React.RefObject<THREE.Vector3>
 }
 
-export default function Butterfly({ input, sphereRadius, isIdle, dogWorldPosition }: ButterflyProps) {
+export default function Butterfly({ input, sphereRadius, yOffset = 0, isIdle, dogWorldPosition }: ButterflyProps) {
   const groupRef = useRef<THREE.Group>(null)
   const { nodes, materials } = useGLTF('/models/Butterfly.glb') as GLTFResult
   const driftX = useRef(0)
   const driftZ = useRef(0)
 
-  const hoverY = sphereRadius + HOVER_HEIGHT_OFFSET
+  const hoverY = sphereRadius + yOffset + HOVER_HEIGHT_OFFSET
 
   useFrame(({ clock }) => {
     const t = clock.getElapsedTime()

@@ -20,12 +20,13 @@ const RUN = 'AnimalArmature|AnimalArmature|AnimalArmature|Run' as ActionName
 
 interface DogProps {
   sphereRadius: number
+  yOffset?: number
   isMoving: React.RefObject<boolean>
   isFast: React.RefObject<boolean>
   facingAngle: React.RefObject<number>
 }
 
-export default function Dog({ sphereRadius, isMoving, isFast, facingAngle }: DogProps) {
+export default function Dog({ sphereRadius, yOffset = 0, isMoving, isFast, facingAngle }: DogProps) {
   const groupRef = useRef<THREE.Group>(null!)
   const animRef = useRef<THREE.Group>(null!)
   const { scene, animations } = useGLTF('/models/Dog.glb')
@@ -66,7 +67,7 @@ export default function Dog({ sphereRadius, isMoving, isFast, facingAngle }: Dog
   })
 
   return (
-    <group ref={groupRef} position={[0, sphereRadius, 0]} scale={0.5} dispose={null}>
+    <group ref={groupRef} position={[0, sphereRadius + yOffset, 0]} scale={0.5} dispose={null}>
       <group ref={animRef}>
         <primitive object={clone} />
       </group>

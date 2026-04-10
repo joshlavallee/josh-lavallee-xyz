@@ -13,7 +13,8 @@ import VirtualJoystick from './VirtualJoystick'
 import { useInput, setJoystickInput } from '../hooks/useInput'
 import { BIOMES, DEFAULT_BIOME_INDEX } from '../lib/biomes'
 
-const SPHERE_RADIUS = 4
+const SPHERE_RADIUS = 8
+const SPHERE_Y_OFFSET = -3
 const ROTATION_SPEED = 0.5
 
 // Module-level color constants
@@ -37,7 +38,7 @@ export default function FetchScene({ colorMode }: SceneProps) {
   const isMoving = useRef(false)
   const isFast = useRef(false)
   const facingAngle = useRef(0)
-  const dogWorldPos = useRef(new THREE.Vector3(0, SPHERE_RADIUS, 0))
+  const dogWorldPos = useRef(new THREE.Vector3(0, SPHERE_RADIUS + SPHERE_Y_OFFSET, 0))
 
   // Light refs
   const ambientRef = useRef<THREE.AmbientLight>(null!)
@@ -175,8 +176,8 @@ export default function FetchScene({ colorMode }: SceneProps) {
         <Stars radius={50} count={2000} fade speed={0.5} />
       )}
 
-      {/* Sphere World - rotates based on input */}
-      <group ref={sphereRef}>
+      {/* Sphere World - rotates based on input, shifted down */}
+      <group ref={sphereRef} position={[0, SPHERE_Y_OFFSET, 0]}>
         {/* Sphere ground */}
         <mesh>
           <sphereGeometry args={[SPHERE_RADIUS, 64, 64]} />
@@ -197,6 +198,7 @@ export default function FetchScene({ colorMode }: SceneProps) {
       {/* Dog in world space at top of sphere - sphere rolls under its feet */}
       <Dog
         sphereRadius={SPHERE_RADIUS}
+        yOffset={SPHERE_Y_OFFSET}
         isMoving={isMoving}
         isFast={isFast}
         facingAngle={facingAngle}
@@ -206,6 +208,7 @@ export default function FetchScene({ colorMode }: SceneProps) {
       <Butterfly
         input={input}
         sphereRadius={SPHERE_RADIUS}
+        yOffset={SPHERE_Y_OFFSET}
         isIdle={isIdle}
         dogWorldPosition={dogWorldPos}
       />
