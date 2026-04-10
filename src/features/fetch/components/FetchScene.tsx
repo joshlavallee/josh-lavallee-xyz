@@ -1,6 +1,6 @@
 import { useRef, useCallback, useEffect } from 'react'
 import { useFrame, useThree } from '@react-three/fiber'
-import { Stars, Html } from '@react-three/drei'
+import { Stars, Html, PerspectiveCamera } from '@react-three/drei'
 import * as THREE from 'three'
 import type { SceneProps } from '@/features/photography/types'
 import GrassField from './GrassField'
@@ -36,8 +36,12 @@ const NIGHT_BG = new THREE.Color('#0A0A2A')
 const SUN_COLOR = new THREE.Color(0xfff5e6)
 const MOON_COLOR = new THREE.Color(0xcce5ff)
 
+// Camera initial position: behind and above the dog
+const CAM_Y = DOG_Y + 1.5
+const CAM_Z = DOG_Z + 5.5
+
 export default function FetchScene({ colorMode }: SceneProps) {
-  const { camera, scene } = useThree()
+  const { scene } = useThree()
 
   // Clean up scene background on unmount so it doesn't leak to other routes
   useEffect(() => {
@@ -81,23 +85,13 @@ export default function FetchScene({ colorMode }: SceneProps) {
   // Camera target refs
   const _camTarget = useRef(new THREE.Vector3())
   const _camIdeal = useRef(new THREE.Vector3())
-  const cameraSet = useRef(false)
 
   useFrame((state, delta) => {
-    // Follow camera behind and above the dog
-    const camY = DOG_Y + 1.5
-    const camZ = DOG_Z + 5.5
-    _camIdeal.current.set(0, camY, camZ)
+    const cam = state.camera
+    _camIdeal.current.set(0, CAM_Y, CAM_Z)
     _camTarget.current.set(0, DOG_Y - 1, DOG_Z - 6)
-
-    if (!cameraSet.current) {
-      camera.position.copy(_camIdeal.current)
-      camera.lookAt(_camTarget.current)
-      cameraSet.current = true
-    } else {
-      camera.position.lerp(_camIdeal.current, 0.05)
-      camera.lookAt(_camTarget.current)
-    }
+    cam.position.lerp(_camIdeal.current, 0.05)
+    cam.lookAt(_camTarget.current)
 
     // Lerp night blend
     nightBlendRef.current = THREE.MathUtils.lerp(nightBlendRef.current, targetNightBlend, delta * 2.0)
@@ -193,6 +187,14 @@ export default function FetchScene({ colorMode }: SceneProps) {
 
   return (
     <>
+      <PerspectiveCamera
+        makeDefault
+        fov={45}
+        near={0.1}
+        far={200}
+        position={[0, CAM_Y, CAM_Z]}
+      />
+
       {/* Lighting */}
       <ambientLight ref={ambientRef} />
 

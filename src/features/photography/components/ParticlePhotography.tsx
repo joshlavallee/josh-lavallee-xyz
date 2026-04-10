@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { OrthographicCamera } from '@react-three/drei'
 import { useThree } from '@react-three/fiber'
+import * as THREE from 'three'
 import type { SceneProps, ParticleData } from '../types'
 import { PHOTOS } from '../photos'
 import { imageToParticles } from '../lib/image-to-particles'
@@ -20,7 +21,12 @@ const THEME_SETTINGS = {
 export default function ParticlePhotography({ colorMode, uiStyle, photoIndex }: ParticlePhotographyProps) {
   const [particleData, setParticleData] = useState<ParticleData | null>(null)
   const cacheRef = useRef<Map<string, ParticleData>>(new Map())
-  const { size } = useThree()
+  const { size, scene } = useThree()
+
+  useEffect(() => {
+    scene.background = new THREE.Color(colorMode === 'light' ? 0xffffff : 0x000000)
+    return () => { scene.background = null }
+  }, [scene, colorMode])
 
   const clampedIndex = Math.max(0, Math.min(photoIndex, PHOTOS.length - 1))
   const photo = PHOTOS[clampedIndex]

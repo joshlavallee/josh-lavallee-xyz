@@ -1,4 +1,4 @@
-import { useRef, useMemo } from "react";
+import { useRef, useMemo, useEffect } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 import { PerspectiveCamera } from "@react-three/drei";
 import * as THREE from "three";
@@ -84,7 +84,13 @@ export default function PlanetScene({
   colorMode: _colorMode,
   uiStyle: _uiStyle,
 }: PlanetSceneProps) {
+  const { scene } = useThree();
   const layout = useResponsiveLayout();
+
+  useEffect(() => {
+    scene.background = new THREE.Color(0x000000);
+    return () => { scene.background = null };
+  }, [scene]);
 
   return (
     <>

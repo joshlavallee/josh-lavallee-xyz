@@ -1,6 +1,6 @@
-import { useRef } from 'react'
+import { useRef, useEffect } from 'react'
 import { PerspectiveCamera } from '@react-three/drei'
-import { useFrame } from '@react-three/fiber'
+import { useFrame, useThree } from '@react-three/fiber'
 import type { PerspectiveCamera as PerspectiveCameraType } from 'three'
 import type { ColorMode, UIStyle } from '@/providers/theme-provider'
 import FluidShader from './FluidShader'
@@ -11,8 +11,13 @@ interface HomeSceneProps {
 }
 
 export default function HomeScene({ colorMode, uiStyle }: HomeSceneProps) {
+  const { scene } = useThree()
   const cameraRef = useRef<PerspectiveCameraType>(null)
   const hasLookedAt = useRef(false)
+
+  useEffect(() => {
+    return () => { scene.background = null }
+  }, [scene])
 
   useFrame(() => {
     if (cameraRef.current && !hasLookedAt.current) {
