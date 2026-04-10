@@ -13,9 +13,9 @@ interface GrassFieldProps {
   sphereRadius: number
 }
 
-const INSTANCE_COUNT = 55000
+const INSTANCE_COUNT = 75000
 const HALF_WIDTH = 0.06
-const HEIGHT = 1
+const HEIGHT = 0.7
 
 const DAY_LIGHT_DIR = new THREE.Vector3(5, 10, 5).normalize()
 const NIGHT_LIGHT_DIR = new THREE.Vector3(-3, 8, -3).normalize()
