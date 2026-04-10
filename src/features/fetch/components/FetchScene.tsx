@@ -46,6 +46,10 @@ export default function FetchScene({ colorMode }: SceneProps) {
   const isFast = useRef(false)
   const facingAngle = useRef(0)
   const dogWorldPos = useRef(new THREE.Vector3(0, DOG_Y, DOG_Z))
+  const _qX = useRef(new THREE.Quaternion())
+  const _qZ = useRef(new THREE.Quaternion())
+  const _axisX = new THREE.Vector3(1, 0, 0)
+  const _axisZ = new THREE.Vector3(0, 0, 1)
 
   // Light refs
   const ambientRef = useRef<THREE.AmbientLight>(null!)
@@ -119,8 +123,12 @@ export default function FetchScene({ colorMode }: SceneProps) {
       : THREE.MathUtils.lerp(0, WALK_ROTATION_SPEED, distance / RUN_THRESHOLD)
 
     if (sphereRef.current && (x !== 0 || y !== 0)) {
-      sphereRef.current.rotation.x += y * rotSpeed * delta
-      sphereRef.current.rotation.z += x * rotSpeed * delta
+      // Use quaternion rotation to avoid gimbal lock on diagonal movement
+      const angle = rotSpeed * delta
+      _qX.current.setFromAxisAngle(_axisX, y * angle)
+      _qZ.current.setFromAxisAngle(_axisZ, x * angle)
+      sphereRef.current.quaternion.premultiply(_qX.current)
+      sphereRef.current.quaternion.premultiply(_qZ.current)
     }
 
     // Derive dog facing from input direction
