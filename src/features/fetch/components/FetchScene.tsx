@@ -38,7 +38,6 @@ export default function FetchScene({ colorMode }: SceneProps) {
   const isFast = useRef(false)
   const facingAngle = useRef(0)
   const dogWorldPos = useRef(new THREE.Vector3(0, SPHERE_RADIUS, 0))
-  const _dogLocal = useRef(new THREE.Vector3(0, SPHERE_RADIUS, 0))
 
   // Light refs
   const ambientRef = useRef<THREE.AmbientLight>(null!)
@@ -122,12 +121,6 @@ export default function FetchScene({ colorMode }: SceneProps) {
       }
     }
 
-    // Compute dog's world position (local top of sphere transformed by sphere rotation)
-    if (sphereRef.current) {
-      dogWorldPos.current.copy(_dogLocal.current)
-      sphereRef.current.localToWorld(dogWorldPos.current)
-    }
-
     // Smooth lighting transitions
     const nb = nightBlendRef.current
     if (ambientRef.current) {
@@ -199,14 +192,15 @@ export default function FetchScene({ colorMode }: SceneProps) {
           sphereRadius={SPHERE_RADIUS}
         />
 
-        {/* Dog at top of sphere */}
-        <Dog
-          sphereRadius={SPHERE_RADIUS}
-          isMoving={isMoving}
-          isFast={isFast}
-          facingAngle={facingAngle}
-        />
       </group>
+
+      {/* Dog in world space at top of sphere - sphere rolls under its feet */}
+      <Dog
+        sphereRadius={SPHERE_RADIUS}
+        isMoving={isMoving}
+        isFast={isFast}
+        facingAngle={facingAngle}
+      />
 
       {/* Butterfly in world space above the sphere */}
       <Butterfly
