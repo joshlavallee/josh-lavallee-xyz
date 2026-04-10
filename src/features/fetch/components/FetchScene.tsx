@@ -38,7 +38,7 @@ export default function FetchScene({ colorMode }: SceneProps) {
   const isMoving = useRef(false)
   const isFast = useRef(false)
   const facingAngle = useRef(0)
-  const dogWorldPos = useRef(new THREE.Vector3(0, SPHERE_RADIUS + SPHERE_Y_OFFSET, 0))
+  const dogWorldPos = useRef(new THREE.Vector3(0, SPHERE_RADIUS * 0.96 + SPHERE_Y_OFFSET, SPHERE_RADIUS * 0.27))
 
   // Light refs
   const ambientRef = useRef<THREE.AmbientLight>(null!)

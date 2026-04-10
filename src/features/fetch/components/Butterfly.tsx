@@ -10,7 +10,7 @@ type GLTFResult = GLTF & {
 }
 
 const MAX_DRIFT = 0.5
-const HOVER_HEIGHT_OFFSET = 1.5
+const HOVER_HEIGHT_OFFSET = 0.5
 
 interface ButterflyProps {
   input: React.RefObject<{ x: number; y: number; active: boolean }>

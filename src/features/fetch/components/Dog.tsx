@@ -67,7 +67,7 @@ export default function Dog({ sphereRadius, yOffset = 0, isMoving, isFast, facin
   })
 
   return (
-    <group ref={groupRef} position={[0, sphereRadius + yOffset, 0]} scale={0.5} dispose={null}>
+    <group ref={groupRef} position={[0, sphereRadius * 0.96 + yOffset, sphereRadius * 0.27]} scale={0.5} dispose={null}>
       <group ref={animRef}>
         <primitive object={clone} />
       </group>
