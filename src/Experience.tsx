@@ -1,5 +1,5 @@
 import { ParticlePhotography } from '@/features/photography'
-import { AboutScene } from '@/features/about'
+import { FetchScene } from '@/features/fetch'
 import { HomeScene } from '@/features/home'
 import { PlanetScene } from '@/features/planet'
 import type { ColorMode, UIStyle } from '@/providers/theme-provider'
@@ -18,7 +18,7 @@ export default function Experience({ routePath, colorMode, uiStyle, photoIndex }
         <HomeScene colorMode={colorMode} uiStyle={uiStyle} />
       )}
       {routePath === '/fetch' && (
-        <AboutScene colorMode={colorMode} uiStyle={uiStyle} />
+        <FetchScene colorMode={colorMode} uiStyle={uiStyle} />
       )}
       {routePath === '/particlepeg' && (
         <ParticlePhotography
