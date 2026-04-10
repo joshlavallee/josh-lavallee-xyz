@@ -1,8 +1,10 @@
-import { useRef } from 'react'
+import { useRef, useState, useCallback } from 'react'
+import { createPortal } from 'react-dom'
 import { useFrame, useThree } from '@react-three/fiber'
 import { Stars } from '@react-three/drei'
 import * as THREE from 'three'
 import type { SceneProps } from '@/features/photography/types'
+import BiomeSelector from './BiomeSelector'
 import GrassField from './GrassField'
 import Butterfly from './Butterfly'
 import Dog from './Dog'
@@ -24,10 +26,17 @@ export default function FetchScene({ colorMode }: SceneProps) {
   const groundRef = useRef<THREE.Mesh>(null!)
 
   // Biome state
-  const biomeIndex = useRef(DEFAULT_BIOME_INDEX)
-  const biomeTransition = useRef(0)
-  const prevBiomeIndex = useRef(DEFAULT_BIOME_INDEX)
-  const currentBiome = BIOMES[DEFAULT_BIOME_INDEX]
+  const [biomeIdx, setBiomeIdx] = useState(DEFAULT_BIOME_INDEX)
+  const prevBiomeIdx = useRef(DEFAULT_BIOME_INDEX)
+  const biomeT = useRef(0)
+  const transitioning = useRef(false)
+
+  const handleBiomeChange = useCallback((newIndex: number) => {
+    prevBiomeIdx.current = biomeIdx
+    setBiomeIdx(newIndex)
+    biomeT.current = 0
+    transitioning.current = true
+  }, [biomeIdx])
 
   // Night blend
   const nightBlendRef = useRef(colorMode === 'dark' ? 1.0 : 0.0)
@@ -36,6 +45,16 @@ export default function FetchScene({ colorMode }: SceneProps) {
   useFrame((_, delta) => {
     // Lerp night blend
     nightBlendRef.current = THREE.MathUtils.lerp(nightBlendRef.current, targetNightBlend, delta * 2.0)
+
+    // Biome transition
+    if (transitioning.current) {
+      biomeT.current = Math.min(biomeT.current + delta * 0.67, 1.0)
+      if (biomeT.current >= 1.0) {
+        transitioning.current = false
+        prevBiomeIdx.current = biomeIdx
+        biomeT.current = 0
+      }
+    }
 
     // Update field center (midpoint of dog and butterfly)
     fieldCenter.current.set(
@@ -99,7 +118,7 @@ export default function FetchScene({ colorMode }: SceneProps) {
   const dirPos: [number, number, number] = targetNightBlend > 0.5 ? [-3, 8, -3] : [5, 10, 5]
 
   const groundColor = new THREE.Color(
-    ...BIOMES[biomeIndex.current].groundColor as [number, number, number]
+    ...BIOMES[biomeIdx].groundColor as [number, number, number]
   )
 
   return (
@@ -139,9 +158,9 @@ export default function FetchScene({ colorMode }: SceneProps) {
 
       {/* Grass */}
       <GrassField
-        biome={BIOMES[prevBiomeIndex.current]}
-        targetBiome={BIOMES[biomeIndex.current]}
-        biomeTransition={biomeTransition.current}
+        biome={BIOMES[prevBiomeIdx.current]}
+        targetBiome={BIOMES[biomeIdx]}
+        biomeTransition={biomeT.current}
         nightBlend={nightBlendRef.current}
         dogPosition={dogPosition}
         fieldCenter={fieldCenter}
@@ -154,6 +173,10 @@ export default function FetchScene({ colorMode }: SceneProps) {
         butterflyPosition={butterflyPosition}
         positionRef={dogPosition}
       />
+      {createPortal(
+        <BiomeSelector currentIndex={biomeIdx} onBiomeChange={handleBiomeChange} />,
+        document.body,
+      )}
     </>
   )
 }
