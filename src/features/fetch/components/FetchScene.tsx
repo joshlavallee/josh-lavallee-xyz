@@ -18,8 +18,8 @@ const SPHERE_Y_OFFSET = -18.5
 const ROTATION_SPEED = 0.3
 
 // Dog sits slightly forward on the sphere (toward camera)
-const DOG_Y = SPHERE_RADIUS * 0.98 + SPHERE_Y_OFFSET
-const DOG_Z = SPHERE_RADIUS * 0.20
+const DOG_Y = SPHERE_RADIUS * 0.995 + SPHERE_Y_OFFSET
+const DOG_Z = SPHERE_RADIUS * 0.10
 
 // Module-level color constants
 const DAY_AMBIENT = new THREE.Color(0xb0d4f1)
@@ -82,10 +82,10 @@ export default function FetchScene({ colorMode }: SceneProps) {
 
   useFrame((state, delta) => {
     // Follow camera behind and above the dog
-    const camY = DOG_Y + 2.5
-    const camZ = DOG_Z + 5
+    const camY = DOG_Y - 0.5
+    const camZ = DOG_Z + 6
     _camIdeal.current.set(0, camY, camZ)
-    _camTarget.current.set(0, DOG_Y + 0.5, DOG_Z - 8)
+    _camTarget.current.set(0, DOG_Y + 1.5, DOG_Z - 5)
 
     if (!cameraSet.current) {
       camera.position.copy(_camIdeal.current)
