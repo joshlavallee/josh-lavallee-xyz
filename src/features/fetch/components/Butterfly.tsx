@@ -11,7 +11,7 @@ type GLTFResult = GLTF & {
 
 const MAX_DRIFT = 0.3
 const NOSE_OFFSET_Y = 1.8
-const NOSE_OFFSET_Z = 2.0
+const NOSE_OFFSET_Z = 3.5
 
 interface ButterflyProps {
   input: React.RefObject<{ x: number; y: number; active: boolean }>
