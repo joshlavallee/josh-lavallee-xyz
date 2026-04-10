@@ -10,7 +10,8 @@ import Butterfly from './Butterfly'
 import Dog from './Dog'
 import Sun from './Sun'
 import Moon from './Moon'
-import { useInput } from '../hooks/useInput'
+import VirtualJoystick from './VirtualJoystick'
+import { useInput, setJoystickInput } from '../hooks/useInput'
 import { useTrailWake } from '../hooks/useTrailWake'
 import { BIOMES, DEFAULT_BIOME_INDEX } from '../lib/biomes'
 
@@ -39,6 +40,10 @@ export default function FetchScene({ colorMode }: SceneProps) {
     biomeT.current = 0
     transitioning.current = true
   }, [biomeIdx])
+
+  const handleJoystickInput = useCallback((x: number, y: number) => {
+    setJoystickInput(input, x, y)
+  }, [input])
 
   // Night blend
   const nightBlendRef = useRef(colorMode === 'dark' ? 1.0 : 0.0)
@@ -188,7 +193,10 @@ export default function FetchScene({ colorMode }: SceneProps) {
         isIdle={isIdle}
       />
       {createPortal(
-        <BiomeSelector currentIndex={biomeIdx} onBiomeChange={handleBiomeChange} />,
+        <>
+          <BiomeSelector currentIndex={biomeIdx} onBiomeChange={handleBiomeChange} />
+          <VirtualJoystick onInput={handleJoystickInput} />
+        </>,
         document.body,
       )}
     </>
