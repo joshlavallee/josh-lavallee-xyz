@@ -74,8 +74,8 @@ export default function FetchScene({ colorMode }: SceneProps) {
   useFrame((state, delta) => {
     // Fixed camera - set once
     if (!cameraSet.current) {
-      camera.position.set(0, 5, 10)
-      camera.lookAt(0, 1, 0)
+      camera.position.set(0, 10, 18)
+      camera.lookAt(0, SPHERE_Y_OFFSET, 0)
       cameraSet.current = true
     }
 
