@@ -15,7 +15,9 @@ import { BIOMES, DEFAULT_BIOME_INDEX } from '../lib/biomes'
 
 const SPHERE_RADIUS = 20
 const SPHERE_Y_OFFSET = -18.5
-const ROTATION_SPEED = 0.3
+const WALK_ROTATION_SPEED = 0.15
+const RUN_ROTATION_SPEED = 0.4
+const RUN_THRESHOLD = 0.5 // distance threshold for walk vs run
 
 // Dog sits slightly forward on the sphere (toward camera)
 const DOG_Y = SPHERE_RADIUS + SPHERE_Y_OFFSET
@@ -109,11 +111,16 @@ export default function FetchScene({ colorMode }: SceneProps) {
       }
     }
 
-    // Sphere rotation from input
-    const { x, y } = input.current
+    // Sphere rotation from input - speed scales with mouse distance
+    const { x, y, distance } = input.current
+    const isRunning = distance > RUN_THRESHOLD
+    const rotSpeed = isRunning
+      ? THREE.MathUtils.lerp(WALK_ROTATION_SPEED, RUN_ROTATION_SPEED, (distance - RUN_THRESHOLD) / (1 - RUN_THRESHOLD))
+      : THREE.MathUtils.lerp(0, WALK_ROTATION_SPEED, distance / RUN_THRESHOLD)
+
     if (sphereRef.current && (x !== 0 || y !== 0)) {
-      sphereRef.current.rotation.x += y * ROTATION_SPEED * delta
-      sphereRef.current.rotation.z -= x * ROTATION_SPEED * delta
+      sphereRef.current.rotation.x += y * rotSpeed * delta
+      sphereRef.current.rotation.z -= x * rotSpeed * delta
     }
 
     // Derive dog facing from input direction
@@ -121,10 +128,9 @@ export default function FetchScene({ colorMode }: SceneProps) {
       facingAngle.current = Math.atan2(x, -y)
     }
 
-    // Movement state for dog animations
-    const speed = Math.sqrt(x * x + y * y)
-    isMoving.current = speed > 0.1
-    isFast.current = speed > 0.7
+    // Movement state for dog animations - synced to distance
+    isMoving.current = distance > 0.05
+    isFast.current = isRunning
 
     // Idle detection
     if (input.current.active) {
