@@ -9,9 +9,8 @@ type GLTFResult = GLTF & {
   materials: { None: THREE.MeshStandardMaterial }
 }
 
-const MAX_DRIFT = 0.3
-const NOSE_OFFSET_Y = 1.8
-const NOSE_OFFSET_Z = 3.5
+const LEAD_DISTANCE = 3.0
+const LEAD_HEIGHT = 1.8
 
 interface ButterflyProps {
   input: React.RefObject<{ x: number; y: number; active: boolean }>
@@ -22,8 +21,8 @@ interface ButterflyProps {
 export default function Butterfly({ input, dogWorldPosition, isIdle }: ButterflyProps) {
   const groupRef = useRef<THREE.Group>(null)
   const { nodes, materials } = useGLTF('/models/Butterfly.glb') as GLTFResult
-  const driftX = useRef(0)
-  const driftZ = useRef(0)
+  const leadX = useRef(0)
+  const leadZ = useRef(0)
 
   useFrame(({ clock }) => {
     const t = clock.getElapsedTime()
@@ -32,28 +31,29 @@ export default function Butterfly({ input, dogWorldPosition, isIdle }: Butterfly
     const dog = dogWorldPosition.current
     const { x, y } = input.current
 
-    // Base position: float near the dog's nose
-    const baseX = dog.x
-    const baseY = dog.y + NOSE_OFFSET_Y
-    const baseZ = dog.z + NOSE_OFFSET_Z
-
     if (isIdle.current) {
-      // Land closer to the dog's nose
-      const landY = dog.y + NOSE_OFFSET_Y * 0.6 + Math.sin(t * 3.5) * 0.03
+      // Land near the dog's nose
+      const landY = dog.y + LEAD_HEIGHT * 0.5 + Math.sin(t * 3.5) * 0.03
       groupRef.current.position.x = THREE.MathUtils.lerp(groupRef.current.position.x, dog.x, 0.02)
-      groupRef.current.position.z = THREE.MathUtils.lerp(groupRef.current.position.z, dog.z + NOSE_OFFSET_Z * 0.5, 0.02)
+      groupRef.current.position.z = THREE.MathUtils.lerp(groupRef.current.position.z, dog.z + 1.0, 0.02)
       groupRef.current.position.y = THREE.MathUtils.lerp(groupRef.current.position.y, landY, 0.03)
 
       // Reduced flutter
       groupRef.current.rotation.z = Math.sin(t * 20) * 0.04
     } else {
-      // Drift slightly from the dog's nose based on input
-      driftX.current = THREE.MathUtils.lerp(driftX.current, x * MAX_DRIFT, 0.05)
-      driftZ.current = THREE.MathUtils.lerp(driftZ.current, -y * MAX_DRIFT, 0.05)
+      // Butterfly leads in the movement direction
+      leadX.current = THREE.MathUtils.lerp(leadX.current, x * LEAD_DISTANCE, 0.04)
+      leadZ.current = THREE.MathUtils.lerp(leadZ.current, -y * LEAD_DISTANCE, 0.04)
 
-      groupRef.current.position.x = THREE.MathUtils.lerp(groupRef.current.position.x, baseX + driftX.current, 0.08)
-      groupRef.current.position.z = THREE.MathUtils.lerp(groupRef.current.position.z, baseZ + driftZ.current, 0.08)
-      groupRef.current.position.y = baseY + Math.sin(t * 3.5) * 0.12
+      // Default forward offset when no input
+      const defaultZ = LEAD_DISTANCE * 0.6
+      const targetX = dog.x + leadX.current
+      const targetZ = dog.z + defaultZ + leadZ.current
+      const targetY = dog.y + LEAD_HEIGHT + Math.sin(t * 3.5) * 0.12
+
+      groupRef.current.position.x = THREE.MathUtils.lerp(groupRef.current.position.x, targetX, 0.06)
+      groupRef.current.position.z = THREE.MathUtils.lerp(groupRef.current.position.z, targetZ, 0.06)
+      groupRef.current.position.y = targetY
 
       // Wing flutter
       groupRef.current.rotation.z = Math.sin(t * 20) * 0.15
@@ -75,7 +75,7 @@ export default function Butterfly({ input, dogWorldPosition, isIdle }: Butterfly
       <mesh
         geometry={nodes.butterfly.geometry}
         material={materials.None}
-        scale={0.2}
+        scale={0.12}
       />
     </group>
   )
