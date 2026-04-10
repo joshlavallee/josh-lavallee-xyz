@@ -60,7 +60,6 @@ export default function ParticleSystem({
       uSoftness: { value: softness },
       uInvertColors: { value: invertColors },
     }),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     []
   )
 

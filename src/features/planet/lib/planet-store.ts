@@ -1,4 +1,4 @@
-export interface PlanetSettings {
+interface PlanetSettings {
   warpStrength: number
   heatAmount: number
   polarBias: number

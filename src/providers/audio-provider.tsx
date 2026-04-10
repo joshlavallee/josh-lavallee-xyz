@@ -162,7 +162,7 @@ export default function AudioProvider({ children }: { children: React.ReactNode 
     document.addEventListener('keydown', startAudio)
     document.addEventListener('touchstart', startAudio)
     return cleanup
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [])
 
   return (
     <AudioContext value={{ isPlaying, volume, track, toggle, setVolume, setTrack }}>

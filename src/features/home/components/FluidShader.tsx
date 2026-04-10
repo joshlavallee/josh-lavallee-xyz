@@ -50,7 +50,6 @@ export default function FluidShader({ colorMode, uiStyle }: FluidShaderProps) {
       uColorMid: { value: new THREE.Vector3(0.55, 0.24, 0.78) },
       uColorHigh: { value: new THREE.Vector3(1.0, 0.2, 0.6) },
     }),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     []
   )
 

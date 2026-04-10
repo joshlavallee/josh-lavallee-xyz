@@ -86,7 +86,7 @@ export const BIOMES: Biome[] = [
   },
 ]
 
-export const DEFAULT_BIOME_INDEX = 2 // Twilight Grove
+const DEFAULT_BIOME_INDEX = 2 // Twilight Grove
 
 export const biomeSettings = {
   index: DEFAULT_BIOME_INDEX,

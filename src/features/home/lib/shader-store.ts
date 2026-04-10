@@ -1,4 +1,4 @@
-export interface ShaderSettings {
+interface ShaderSettings {
   speed: number
   displacement: number
   mouseRadius: number
