@@ -15,7 +15,7 @@ import { BIOMES, biomeSettings } from '../lib/biomes'
 const SPHERE_RADIUS = 20
 const SPHERE_Y_OFFSET = -18.5
 const WALK_ROTATION_SPEED = 0.15
-const RUN_ROTATION_SPEED = 0.25
+const RUN_ROTATION_SPEED = 0.18
 const RUN_THRESHOLD = 0.95 // distance threshold for walk vs run
 
 // Dog sits slightly forward on the sphere (toward camera)
