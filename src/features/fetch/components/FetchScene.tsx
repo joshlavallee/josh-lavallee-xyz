@@ -14,7 +14,7 @@ import { useInput, setJoystickInput } from '../hooks/useInput'
 import { BIOMES, DEFAULT_BIOME_INDEX } from '../lib/biomes'
 
 const SPHERE_RADIUS = 8
-const SPHERE_Y_OFFSET = -3
+const SPHERE_Y_OFFSET = -7
 const ROTATION_SPEED = 0.5
 
 // Module-level color constants
