@@ -9,6 +9,7 @@ import Dog from './Dog'
 import Sun from './Sun'
 import Moon from './Moon'
 import { useInput } from '../hooks/useInput'
+import { useTrailWake } from '../hooks/useTrailWake'
 import { BIOMES, DEFAULT_BIOME_INDEX } from '../lib/biomes'
 
 const GROUND_SIZE = 80
@@ -19,8 +20,7 @@ export default function FetchScene({ colorMode }: SceneProps) {
   const fieldCenter = useRef(new THREE.Vector3(0, 0, 0))
   const dogPosition = useRef(new THREE.Vector3(0, 0, 0))
   const butterflyPosition = useRef(new THREE.Vector3(0, 0, 2))
-  const trailBuffer = useRef(new Float32Array(90))
-  const trailCount = useRef(0)
+  const trail = useTrailWake()
   const groundRef = useRef<THREE.Mesh>(null!)
 
   // Biome state
@@ -49,6 +49,8 @@ export default function FetchScene({ colorMode }: SceneProps) {
       groundRef.current.position.x = fieldCenter.current.x
       groundRef.current.position.z = fieldCenter.current.z
     }
+
+    trail.update(delta, dogPosition.current.x, dogPosition.current.z)
 
     // Follow camera: behind dog, looking toward butterfly
     const dogPos = dogPosition.current
@@ -143,8 +145,8 @@ export default function FetchScene({ colorMode }: SceneProps) {
         nightBlend={nightBlendRef.current}
         dogPosition={dogPosition}
         fieldCenter={fieldCenter}
-        trailBuffer={trailBuffer}
-        trailCount={trailCount}
+        trailBuffer={trail.buffer}
+        trailCount={trail.count}
       />
 
       <Butterfly input={input} positionRef={butterflyPosition} />
