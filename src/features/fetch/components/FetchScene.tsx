@@ -18,8 +18,8 @@ const SPHERE_Y_OFFSET = -18.5
 const ROTATION_SPEED = 0.3
 
 // Dog sits slightly forward on the sphere (toward camera)
-const DOG_Y = SPHERE_RADIUS * 0.99 + SPHERE_Y_OFFSET
-const DOG_Z = SPHERE_RADIUS * 0.14
+const DOG_Y = SPHERE_RADIUS * 0.98 + SPHERE_Y_OFFSET
+const DOG_Z = SPHERE_RADIUS * 0.20
 
 // Module-level color constants
 const DAY_AMBIENT = new THREE.Color(0xb0d4f1)
