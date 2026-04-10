@@ -9,7 +9,7 @@ interface GrassFieldProps {
   biome: Biome
   targetBiome: Biome
   biomeTransition: number
-  nightBlend: number
+  nightBlendRef: React.RefObject<number>
   sphereRadius: number
 }
 
@@ -67,7 +67,7 @@ export default function GrassField({
   biome,
   targetBiome,
   biomeTransition,
-  nightBlend,
+  nightBlendRef,
   sphereRadius,
 }: GrassFieldProps) {
   const meshRef = useRef<THREE.InstancedMesh>(null!)
@@ -161,7 +161,7 @@ export default function GrassField({
     // Update uniforms only - no matrix rebuilds
     const u = material.uniforms
     u.uTime.value = state.clock.getElapsedTime()
-    u.uNightBlend.value = nightBlend
+    u.uNightBlend.value = nightBlendRef.current
 
     // Lerp biome uniforms
     const t = biomeTransition
@@ -183,13 +183,13 @@ export default function GrassField({
     u.uGlowIntensity.value = lerpScalar(biome.glowIntensity, targetBiome.glowIntensity, t)
 
     // Lighting direction based on day/night
-    u.uLightDirection.value.lerpVectors(DAY_LIGHT_DIR, NIGHT_LIGHT_DIR, nightBlend)
+    u.uLightDirection.value.lerpVectors(DAY_LIGHT_DIR, NIGHT_LIGHT_DIR, nightBlendRef.current)
     u.uLightColor.value.setRGB(
-      THREE.MathUtils.lerp(1.0, 0.8, nightBlend),
-      THREE.MathUtils.lerp(0.96, 0.9, nightBlend),
-      THREE.MathUtils.lerp(0.9, 1.0, nightBlend),
+      THREE.MathUtils.lerp(1.0, 0.8, nightBlendRef.current),
+      THREE.MathUtils.lerp(0.96, 0.9, nightBlendRef.current),
+      THREE.MathUtils.lerp(0.9, 1.0, nightBlendRef.current),
     )
-    u.uLightIntensity.value = THREE.MathUtils.lerp(1.5, 0.6, nightBlend)
+    u.uLightIntensity.value = THREE.MathUtils.lerp(1.5, 0.6, nightBlendRef.current)
   })
 
   return (

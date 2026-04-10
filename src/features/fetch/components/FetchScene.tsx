@@ -1,9 +1,8 @@
-import { useRef, useState, useCallback } from 'react'
+import { useRef, useCallback } from 'react'
 import { useFrame, useThree } from '@react-three/fiber'
 import { Stars, Html } from '@react-three/drei'
 import * as THREE from 'three'
 import type { SceneProps } from '@/features/photography/types'
-import BiomeSelector from './BiomeSelector'
 import GrassField from './GrassField'
 import Butterfly from './Butterfly'
 import Dog from './Dog'
@@ -11,7 +10,7 @@ import Sun from './Sun'
 import Moon from './Moon'
 import VirtualJoystick from './VirtualJoystick'
 import { useInput, setJoystickInput } from '../hooks/useInput'
-import { BIOMES, DEFAULT_BIOME_INDEX } from '../lib/biomes'
+import { BIOMES, biomeSettings } from '../lib/biomes'
 
 const SPHERE_RADIUS = 20
 const SPHERE_Y_OFFSET = -18.5
@@ -56,18 +55,11 @@ export default function FetchScene({ colorMode }: SceneProps) {
   const sphereMatRef = useRef<THREE.MeshStandardMaterial>(null!)
   const bgColor = useRef(new THREE.Color())
 
-  // Biome state
-  const [biomeIdx, setBiomeIdx] = useState(DEFAULT_BIOME_INDEX)
-  const prevBiomeIdx = useRef(DEFAULT_BIOME_INDEX)
+  // Biome state (reads from shared store each frame)
+  const prevBiomeIdx = useRef(biomeSettings.index)
+  const currentBiomeIdx = useRef(biomeSettings.index)
   const biomeT = useRef(0)
   const transitioning = useRef(false)
-
-  const handleBiomeChange = useCallback((newIndex: number) => {
-    prevBiomeIdx.current = biomeIdx
-    setBiomeIdx(newIndex)
-    biomeT.current = 0
-    transitioning.current = true
-  }, [biomeIdx])
 
   const handleJoystickInput = useCallback((x: number, y: number) => {
     setJoystickInput(input, x, y)
@@ -101,12 +93,20 @@ export default function FetchScene({ colorMode }: SceneProps) {
     // Lerp night blend
     nightBlendRef.current = THREE.MathUtils.lerp(nightBlendRef.current, targetNightBlend, delta * 2.0)
 
+    // Detect biome changes from the shared store
+    if (biomeSettings.index !== currentBiomeIdx.current) {
+      prevBiomeIdx.current = currentBiomeIdx.current
+      currentBiomeIdx.current = biomeSettings.index
+      biomeT.current = 0
+      transitioning.current = true
+    }
+
     // Biome transition
     if (transitioning.current) {
       biomeT.current = Math.min(biomeT.current + delta * 0.67, 1.0)
       if (biomeT.current >= 1.0) {
         transitioning.current = false
-        prevBiomeIdx.current = biomeIdx
+        prevBiomeIdx.current = currentBiomeIdx.current
         biomeT.current = 0
       }
     }
@@ -164,7 +164,7 @@ export default function FetchScene({ colorMode }: SceneProps) {
     }
     if (sphereMatRef.current) {
       const prevGround = BIOMES[prevBiomeIdx.current].groundColor
-      const targetGround = BIOMES[biomeIdx].groundColor
+      const targetGround = BIOMES[currentBiomeIdx.current].groundColor
       const t = biomeT.current
       sphereMatRef.current.color.setRGB(
         prevGround[0] + (targetGround[0] - prevGround[0]) * t,
@@ -220,9 +220,9 @@ export default function FetchScene({ colorMode }: SceneProps) {
 
         <GrassField
           biome={BIOMES[prevBiomeIdx.current]}
-          targetBiome={BIOMES[biomeIdx]}
+          targetBiome={BIOMES[currentBiomeIdx.current]}
           biomeTransition={biomeT.current}
-          nightBlend={nightBlendRef.current}
+          nightBlendRef={nightBlendRef}
           sphereRadius={SPHERE_RADIUS}
         />
       </group>
@@ -252,10 +252,7 @@ export default function FetchScene({ colorMode }: SceneProps) {
         isIdle={isIdle}
       />
 
-      <Html fullscreen style={{ pointerEvents: 'none', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', alignItems: 'center', paddingBottom: '6rem' }}>
-        <div style={{ pointerEvents: 'auto' }}>
-          <BiomeSelector currentIndex={biomeIdx} onBiomeChange={handleBiomeChange} />
-        </div>
+      <Html fullscreen style={{ pointerEvents: 'none' }}>
         <VirtualJoystick onInput={handleJoystickInput} />
       </Html>
     </>
