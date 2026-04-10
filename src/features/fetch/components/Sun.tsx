@@ -4,15 +4,17 @@ import * as THREE from 'three'
 
 interface SunProps {
   fieldCenter: React.RefObject<THREE.Vector3>
-  nightBlend: number
+  nightBlendRef: React.RefObject<number>
 }
 
-export default function Sun({ fieldCenter, nightBlend }: SunProps) {
+export default function Sun({ fieldCenter, nightBlendRef }: SunProps) {
   const groupRef = useRef<THREE.Group>(null!)
   const coronaRef = useRef<THREE.Mesh>(null!)
 
   useFrame(({ clock }) => {
     if (!groupRef.current) return
+
+    const nightBlend = nightBlendRef.current
 
     // Follow field center on the left horizon
     const center = fieldCenter.current

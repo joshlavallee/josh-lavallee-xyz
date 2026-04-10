@@ -4,14 +4,16 @@ import * as THREE from 'three'
 
 interface MoonProps {
   fieldCenter: React.RefObject<THREE.Vector3>
-  nightBlend: number
+  nightBlendRef: React.RefObject<number>
 }
 
-export default function Moon({ fieldCenter, nightBlend }: MoonProps) {
+export default function Moon({ fieldCenter, nightBlendRef }: MoonProps) {
   const groupRef = useRef<THREE.Group>(null!)
 
   useFrame(() => {
     if (!groupRef.current) return
+
+    const nightBlend = nightBlendRef.current
 
     // Follow field center on the right horizon
     const center = fieldCenter.current

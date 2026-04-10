@@ -22,6 +22,9 @@ const HALF_WIDTH = 0.06
 const HEIGHT = 1
 const LOD_DISTANCE = 20
 
+const DAY_LIGHT_DIR = new THREE.Vector3(5, 10, 5).normalize()
+const NIGHT_LIGHT_DIR = new THREE.Vector3(-3, 8, -3).normalize()
+
 function createGrassGeometry(segments: number) {
   const taper = 0.008
   const positions: number[] = []
@@ -77,6 +80,7 @@ export default function GrassField({
 }: GrassFieldProps) {
   const highRef = useRef<THREE.InstancedMesh>(null!)
   const lowRef = useRef<THREE.InstancedMesh>(null!)
+  const dummy = useRef(new THREE.Object3D())
   const { camera } = useThree()
 
   const highGeo = useMemo(() => createGrassGeometry(7), [])
@@ -155,7 +159,7 @@ export default function GrassField({
     const center = fieldCenter.current
     const halfField = FIELD_SIZE / 2
 
-    const dummy = new THREE.Object3D()
+    const d = dummy.current
     let highIdx = 0
     let lowIdx = 0
 
@@ -176,20 +180,20 @@ export default function GrassField({
       bladeData[idx] = finalX - center.x
       bladeData[idx + 1] = finalZ - center.z
 
-      dummy.position.set(finalX, 0, finalZ)
-      dummy.rotation.y = bladeData[idx + 2]
+      d.position.set(finalX, 0, finalZ)
+      d.rotation.y = bladeData[idx + 2]
       const scale = 0.8 + bladeData[idx + 4] * 0.4
-      dummy.scale.set(scale, scale, scale)
-      dummy.updateMatrix()
+      d.scale.set(scale, scale, scale)
+      d.updateMatrix()
 
-      const dist = camera.position.distanceTo(dummy.position)
+      const dist = camera.position.distanceTo(d.position)
       if (dist < LOD_DISTANCE) {
         if (highIdx < INSTANCE_COUNT) {
-          highRef.current.setMatrixAt(highIdx++, dummy.matrix)
+          highRef.current.setMatrixAt(highIdx++, d.matrix)
         }
       } else {
         if (lowIdx < INSTANCE_COUNT) {
-          lowRef.current.setMatrixAt(lowIdx++, dummy.matrix)
+          lowRef.current.setMatrixAt(lowIdx++, d.matrix)
         }
       }
     }
@@ -235,9 +239,7 @@ export default function GrassField({
     }
 
     // Lighting direction based on day/night
-    const dayDir = new THREE.Vector3(5, 10, 5).normalize()
-    const nightDir = new THREE.Vector3(-3, 8, -3).normalize()
-    u.uLightDirection.value.lerpVectors(dayDir, nightDir, nightBlend)
+    u.uLightDirection.value.lerpVectors(DAY_LIGHT_DIR, NIGHT_LIGHT_DIR, nightBlend)
     u.uLightColor.value.setRGB(
       THREE.MathUtils.lerp(1.0, 0.8, nightBlend),
       THREE.MathUtils.lerp(0.96, 0.9, nightBlend),
