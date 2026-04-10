@@ -230,13 +230,20 @@ export default function FetchScene({ colorMode }: SceneProps) {
         facingAngle={facingAngle}
       />
 
-      {/* Butterfly in world space above the dog */}
+      {/* Soft fill light on the dog so it's not silhouetted */}
+      <pointLight
+        position={[0, DOG_Y + 2, DOG_Z + 3]}
+        intensity={0.8}
+        color="#ffffff"
+        distance={8}
+        decay={2}
+      />
+
+      {/* Butterfly floats near the dog's nose */}
       <Butterfly
         input={input}
-        sphereRadius={SPHERE_RADIUS}
-        yOffset={SPHERE_Y_OFFSET}
-        isIdle={isIdle}
         dogWorldPosition={dogWorldPos}
+        isIdle={isIdle}
       />
 
       <Html fullscreen style={{ pointerEvents: 'none', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', alignItems: 'center', paddingBottom: '6rem' }}>
