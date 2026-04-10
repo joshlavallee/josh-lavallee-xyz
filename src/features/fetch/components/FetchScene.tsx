@@ -6,6 +6,8 @@ import type { SceneProps } from '@/features/photography/types'
 import GrassField from './GrassField'
 import Butterfly from './Butterfly'
 import Dog from './Dog'
+import Sun from './Sun'
+import Moon from './Moon'
 import { useInput } from '../hooks/useInput'
 import { BIOMES, DEFAULT_BIOME_INDEX } from '../lib/biomes'
 
@@ -110,6 +112,9 @@ export default function FetchScene({ colorMode }: SceneProps) {
           THREE.MathUtils.lerp(0.3, 0.15, targetNightBlend),
         ]}
       />
+
+      <Sun fieldCenter={fieldCenter} nightBlend={nightBlendRef.current} />
+      <Moon fieldCenter={fieldCenter} nightBlend={nightBlendRef.current} />
 
       {/* Sky background color */}
       <color
