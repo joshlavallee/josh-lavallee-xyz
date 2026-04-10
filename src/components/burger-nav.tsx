@@ -5,7 +5,7 @@ import { cn } from '@/lib/utils'
 
 const NAV_ITEMS = [
   { to: '/' as const, label: 'Home', icon: Home },
-  { to: '/fetch' as const, label: 'Fetch', icon: PawPrint },
+  { to: '/fetch' as const, label: 'Fetch', icon: PawPrint, wip: true },
   { to: '/particlepeg' as const, label: 'Particle Peg', icon: Waypoints },
   { to: '/lost-in-space' as const, label: 'Lost in Space', icon: Globe },
 ]
@@ -16,7 +16,9 @@ export default function BurgerNav() {
   const routerState = useRouterState()
   const currentPath = routerState.location.pathname
 
-  const currentLabel = NAV_ITEMS.find((item) => item.to === currentPath)?.label ?? ''
+  const currentItem = NAV_ITEMS.find((item) => item.to === currentPath)
+  const currentLabel = currentItem?.label ?? ''
+  const currentWip = currentItem?.wip ?? false
 
   useEffect(() => {
     if (!isOpen) return
@@ -95,6 +97,11 @@ export default function BurgerNav() {
                   >
                     <Icon className="size-4 shrink-0" />
                     {item.label}
+                    {item.wip && (
+                      <span className="ml-auto rounded-sm bg-amber-400/90 px-1.5 py-0.5 text-[9px] font-bold uppercase leading-none text-amber-950 tracking-wide">
+                        WIP
+                      </span>
+                    )}
                   </Link>
                 )
               })}
@@ -102,8 +109,13 @@ export default function BurgerNav() {
           </div>
         </div>
 
-        <span className="flex h-[52px] items-center text-sm font-semibold uppercase tracking-[2px] text-muted-foreground">
+        <span className="flex h-[52px] items-center gap-2 text-sm font-semibold uppercase tracking-[2px] text-muted-foreground">
           {currentLabel}
+          {currentWip && (
+            <span className="rounded-sm bg-amber-400/90 px-1.5 py-0.5 text-[9px] font-bold uppercase leading-none text-amber-950 tracking-wide">
+              WIP
+            </span>
+          )}
         </span>
       </div>
     </nav>
