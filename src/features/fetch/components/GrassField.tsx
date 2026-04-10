@@ -13,7 +13,7 @@ interface GrassFieldProps {
   sphereRadius: number
 }
 
-const INSTANCE_COUNT = 40000
+const INSTANCE_COUNT = 55000
 const HALF_WIDTH = 0.06
 const HEIGHT = 1
 
