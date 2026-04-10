@@ -15,9 +15,11 @@ const HOVER_HEIGHT = 1.0
 interface ButterflyProps {
   input: React.RefObject<{ x: number; y: number; active: boolean }>
   positionRef: React.RefObject<THREE.Vector3>
+  isIdle: React.RefObject<boolean>
+  dogPosition: React.RefObject<THREE.Vector3>
 }
 
-export default function Butterfly({ input, positionRef }: ButterflyProps) {
+export default function Butterfly({ input, positionRef, isIdle, dogPosition }: ButterflyProps) {
   const groupRef = useRef<THREE.Group>(null)
   const { nodes, materials } = useGLTF('/models/Butterfly.glb') as GLTFResult
 
@@ -27,16 +29,35 @@ export default function Butterfly({ input, positionRef }: ButterflyProps) {
 
     const { x, y } = input.current
 
-    // Move in world space
-    if (x !== 0 || y !== 0) {
-      groupRef.current.position.x += x * MOVE_SPEED * delta
-      groupRef.current.position.z -= y * MOVE_SPEED * delta
+    if (isIdle.current && dogPosition.current) {
+      // Idle landing: descend toward dog's head
+      const landTarget = dogPosition.current.clone()
+      landTarget.y += 0.6 // dog's head height (scaled model)
+
+      groupRef.current.position.x = THREE.MathUtils.lerp(groupRef.current.position.x, landTarget.x, 0.02)
+      groupRef.current.position.z = THREE.MathUtils.lerp(groupRef.current.position.z, landTarget.z, 0.02)
+
+      // Descend to head height with reduced bob
+      const landY = landTarget.y + Math.sin(t * 3.5) * 0.03
+      groupRef.current.position.y = THREE.MathUtils.lerp(groupRef.current.position.y, landY, 0.03)
+
+      // Reduced wing flutter when perched
+      groupRef.current.rotation.z = Math.sin(t * 20) * 0.04
+    } else {
+      // Move in world space
+      if (x !== 0 || y !== 0) {
+        groupRef.current.position.x += x * MOVE_SPEED * delta
+        groupRef.current.position.z -= y * MOVE_SPEED * delta
+      }
+
+      // Hover bob
+      groupRef.current.position.y = HOVER_HEIGHT + Math.sin(t * 3.5) * 0.12
+
+      // Wing flutter
+      groupRef.current.rotation.z = Math.sin(t * 20) * 0.15
     }
 
-    // Hover bob
-    groupRef.current.position.y = HOVER_HEIGHT + Math.sin(t * 3.5) * 0.12
-
-    // Face movement direction
+    // Face movement direction (always active)
     if (Math.abs(x) > 0.01 || Math.abs(y) > 0.01) {
       const targetRot = Math.atan2(x, -y)
       groupRef.current.rotation.y = THREE.MathUtils.lerp(
@@ -45,9 +66,6 @@ export default function Butterfly({ input, positionRef }: ButterflyProps) {
         0.05,
       )
     }
-
-    // Wing flutter
-    groupRef.current.rotation.z = Math.sin(t * 20) * 0.15
 
     // Update shared position ref
     positionRef.current.copy(groupRef.current.position)

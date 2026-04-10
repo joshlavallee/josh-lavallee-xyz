@@ -26,9 +26,10 @@ const RUN = 'AnimalArmature|AnimalArmature|AnimalArmature|Run' as ActionName
 interface DogProps {
   butterflyPosition: React.RefObject<THREE.Vector3>
   positionRef: React.RefObject<THREE.Vector3>
+  isIdle: React.RefObject<boolean>
 }
 
-export default function Dog({ butterflyPosition, positionRef }: DogProps) {
+export default function Dog({ butterflyPosition, positionRef, isIdle }: DogProps) {
   const moveRef = useRef<THREE.Group>(null!)
   const animRef = useRef<THREE.Group>(null!)
   const { scene, animations } = useGLTF('/models/Dog.glb')
@@ -56,48 +57,72 @@ export default function Dog({ butterflyPosition, positionRef }: DogProps) {
     const s = stateRef.current
     if (!moveRef.current || !butterflyPosition.current) return
 
-    const targetX = butterflyPosition.current.x
-    const targetZ = butterflyPosition.current.z
-    const dx = targetX - s.posX
-    const dz = targetZ - s.posZ
-    const dist = Math.sqrt(dx * dx + dz * dz)
-
-    const isMoving = dist > STOP_THRESHOLD
-    const shouldRun = dist > RUN_THRESHOLD
-
-    if (isMoving) {
-      const speed = shouldRun ? RUN_SPEED : MOVE_SPEED
-      const moveAmount = Math.min(speed * delta, dist)
-      s.posX += (dx / dist) * moveAmount
-      s.posZ += (dz / dist) * moveAmount
-
-      const targetRot = Math.atan2(dx, dz)
-      s.rotY = THREE.MathUtils.lerp(s.rotY, targetRot, 0.06)
-    } else {
+    if (isIdle.current) {
+      // When idle, just face the butterfly and sit
+      const dx = butterflyPosition.current.x - s.posX
+      const dz = butterflyPosition.current.z - s.posZ
       if (dx !== 0 || dz !== 0) {
         const targetRot = Math.atan2(dx, dz)
         s.rotY = THREE.MathUtils.lerp(s.rotY, targetRot, 0.03)
       }
-    }
 
-    moveRef.current.position.x = s.posX
-    moveRef.current.position.z = s.posZ
-    moveRef.current.rotation.y = s.rotY
+      moveRef.current.rotation.y = s.rotY
 
-    // Update shared position ref
-    positionRef.current.set(s.posX, 0, s.posZ)
+      const desiredAnim = IDLE
+      if (desiredAnim !== s.currentAnim) {
+        const prev = actions[s.currentAnim as ActionName]
+        const next = actions[desiredAnim]
+        if (next) {
+          prev?.fadeOut(0.2)
+          next.reset().fadeIn(0.2).play()
+          s.currentAnim = desiredAnim
+        }
+      }
+    } else {
+      // --- existing chase logic starts here ---
+      const targetX = butterflyPosition.current.x
+      const targetZ = butterflyPosition.current.z
+      const dx = targetX - s.posX
+      const dz = targetZ - s.posZ
+      const dist = Math.sqrt(dx * dx + dz * dz)
 
-    // Animation transitions
-    const desiredAnim = isMoving ? (shouldRun ? RUN : WALK) : IDLE
-    if (desiredAnim !== s.currentAnim) {
-      const prev = actions[s.currentAnim as ActionName]
-      const next = actions[desiredAnim]
-      if (next) {
-        prev?.fadeOut(0.2)
-        next.reset().fadeIn(0.2).play()
-        s.currentAnim = desiredAnim
+      const isMoving = dist > STOP_THRESHOLD
+      const shouldRun = dist > RUN_THRESHOLD
+
+      if (isMoving) {
+        const speed = shouldRun ? RUN_SPEED : MOVE_SPEED
+        const moveAmount = Math.min(speed * delta, dist)
+        s.posX += (dx / dist) * moveAmount
+        s.posZ += (dz / dist) * moveAmount
+
+        const targetRot = Math.atan2(dx, dz)
+        s.rotY = THREE.MathUtils.lerp(s.rotY, targetRot, 0.06)
+      } else {
+        if (dx !== 0 || dz !== 0) {
+          const targetRot = Math.atan2(dx, dz)
+          s.rotY = THREE.MathUtils.lerp(s.rotY, targetRot, 0.03)
+        }
+      }
+
+      moveRef.current.position.x = s.posX
+      moveRef.current.position.z = s.posZ
+      moveRef.current.rotation.y = s.rotY
+
+      // Animation transitions
+      const desiredAnim = isMoving ? (shouldRun ? RUN : WALK) : IDLE
+      if (desiredAnim !== s.currentAnim) {
+        const prev = actions[s.currentAnim as ActionName]
+        const next = actions[desiredAnim]
+        if (next) {
+          prev?.fadeOut(0.2)
+          next.reset().fadeIn(0.2).play()
+          s.currentAnim = desiredAnim
+        }
       }
     }
+
+    // Update shared position ref (always, both branches)
+    positionRef.current.set(s.posX, 0, s.posZ)
   })
 
   return (

@@ -24,6 +24,8 @@ export default function FetchScene({ colorMode }: SceneProps) {
   const butterflyPosition = useRef(new THREE.Vector3(0, 0, 2))
   const trail = useTrailWake()
   const groundRef = useRef<THREE.Mesh>(null!)
+  const idleTimer = useRef(0)
+  const isIdle = useRef(false)
 
   // Biome state
   const [biomeIdx, setBiomeIdx] = useState(DEFAULT_BIOME_INDEX)
@@ -70,6 +72,17 @@ export default function FetchScene({ colorMode }: SceneProps) {
     }
 
     trail.update(delta, dogPosition.current.x, dogPosition.current.z)
+
+    // Idle detection
+    if (input.current.active) {
+      idleTimer.current = 0
+      isIdle.current = false
+    } else {
+      idleTimer.current += delta
+      if (idleTimer.current > 2.0) {
+        isIdle.current = true
+      }
+    }
 
     // Follow camera: behind dog, looking toward butterfly
     const dogPos = dogPosition.current
@@ -168,10 +181,11 @@ export default function FetchScene({ colorMode }: SceneProps) {
         trailCount={trail.count}
       />
 
-      <Butterfly input={input} positionRef={butterflyPosition} />
+      <Butterfly input={input} positionRef={butterflyPosition} isIdle={isIdle} dogPosition={dogPosition} />
       <Dog
         butterflyPosition={butterflyPosition}
         positionRef={dogPosition}
+        isIdle={isIdle}
       />
       {createPortal(
         <BiomeSelector currentIndex={biomeIdx} onBiomeChange={handleBiomeChange} />,
