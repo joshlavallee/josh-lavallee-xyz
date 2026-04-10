@@ -82,10 +82,10 @@ export default function FetchScene({ colorMode }: SceneProps) {
 
   useFrame((state, delta) => {
     // Follow camera behind and above the dog
-    const camY = DOG_Y - 0.5
-    const camZ = DOG_Z + 6
+    const camY = DOG_Y + 1.5
+    const camZ = DOG_Z + 5.5
     _camIdeal.current.set(0, camY, camZ)
-    _camTarget.current.set(0, DOG_Y + 1.5, DOG_Z - 5)
+    _camTarget.current.set(0, DOG_Y - 1, DOG_Z - 6)
 
     if (!cameraSet.current) {
       camera.position.copy(_camIdeal.current)
