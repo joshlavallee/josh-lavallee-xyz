@@ -112,11 +112,13 @@ vec3 deform(vec3 pos, float hash) {
   // Bezier bending
   float bendStrength = mix(0.3, 0.6, hash);
   float bendStart = mix(0.0, 0.3, hash);
-  float normalizedY = pos.y / 1.0;
+  float normalizedY = pos.y;
   float t = clamp((normalizedY - bendStart) / (1.0 - bendStart), 0.0, 1.0);
   float topBendFactor = bezier(t, 0.1);
-  vec3 instanceZ = normalize(vec3(0.0, 0.0, instanceMatrix[0].z));
-  localPosition += instanceZ * bendStrength * topBendFactor;
+  // Use hash-based bend direction to avoid NaN from normalize(vec3(0))
+  float bendAngle = hash * 6.28318;
+  vec3 bendDir = vec3(cos(bendAngle), 0.0, sin(bendAngle));
+  localPosition += bendDir * bendStrength * topBendFactor;
 
   // Gentle sway
   float gentleSway = sin(uTime * uSpeed * 0.8 + hash * 10.0) * 0.1 * uWindStrength;
@@ -135,9 +137,9 @@ vec3 deform(vec3 pos, float hash) {
   vec3 bladeWorldPos = instanceMatrix[3].xyz;
   float dogDist = length(bladeWorldPos.xz - uDogPosition.xz);
   float dogRadius = 0.5;
-  if (dogDist < dogRadius) {
+  if (dogDist < dogRadius && dogDist > 0.001) {
     float dogInfluence = (1.0 - dogDist / dogRadius) * normalizedY;
-    vec2 awayDir = normalize(bladeWorldPos.xz - uDogPosition.xz);
+    vec2 awayDir = (bladeWorldPos.xz - uDogPosition.xz) / dogDist;
     localPosition.x += awayDir.x * dogInfluence * 0.4;
     localPosition.z += awayDir.y * dogInfluence * 0.4;
     localPosition.y -= dogInfluence * 0.15;
@@ -153,10 +155,14 @@ vec3 deform(vec3 pos, float hash) {
 
   // Billboard rotation toward camera
   vec3 camPos = inverse(viewMatrix)[3].xyz;
-  vec2 toCamera2D = normalize(camPos.xz - bladeWorldPos.xz);
-  float angleToCamera = atan(toCamera2D.y, toCamera2D.x);
-  mat3 billboardRot = rotationY(angleToCamera);
-  localPosition = billboardRot * localPosition;
+  vec2 toCam = camPos.xz - bladeWorldPos.xz;
+  float camDist2D = length(toCam);
+  if (camDist2D > 0.001) {
+    toCam /= camDist2D;
+    float angleToCamera = atan(toCam.y, toCam.x);
+    mat3 billboardRot = rotationY(angleToCamera);
+    localPosition = billboardRot * localPosition;
+  }
 
   return localPosition;
 }

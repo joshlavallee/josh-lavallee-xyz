@@ -17,7 +17,7 @@ interface GrassFieldProps {
 }
 
 const FIELD_SIZE = 60
-const INSTANCE_COUNT = 150000
+const INSTANCE_COUNT = 80000
 const HALF_WIDTH = 0.06
 const HEIGHT = 1
 const LOD_DISTANCE = 20
