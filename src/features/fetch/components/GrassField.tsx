@@ -1,6 +1,6 @@
 import { useMemo, useRef } from 'react'
 import * as THREE from 'three'
-import { useFrame, useThree } from '@react-three/fiber'
+import { useFrame } from '@react-three/fiber'
 import grassVertexShader from '../shaders/grass.vert.glsl?raw'
 import grassFragmentShader from '../shaders/grass.frag.glsl?raw'
 import type { Biome } from '../lib/biomes'
@@ -10,17 +10,12 @@ interface GrassFieldProps {
   targetBiome: Biome
   biomeTransition: number
   nightBlend: number
-  dogPosition: React.RefObject<THREE.Vector3>
-  fieldCenter: React.RefObject<THREE.Vector3>
-  trailBuffer: React.RefObject<Float32Array>
-  trailCount: React.RefObject<number>
+  sphereRadius: number
 }
 
-const FIELD_SIZE = 60
-const INSTANCE_COUNT = 80000
+const INSTANCE_COUNT = 15000
 const HALF_WIDTH = 0.06
 const HEIGHT = 1
-const LOD_DISTANCE = 20
 
 const DAY_LIGHT_DIR = new THREE.Vector3(5, 10, 5).normalize()
 const NIGHT_LIGHT_DIR = new THREE.Vector3(-3, 8, -3).normalize()
@@ -73,18 +68,11 @@ export default function GrassField({
   targetBiome,
   biomeTransition,
   nightBlend,
-  dogPosition,
-  fieldCenter,
-  trailBuffer,
-  trailCount,
+  sphereRadius,
 }: GrassFieldProps) {
-  const highRef = useRef<THREE.InstancedMesh>(null!)
-  const lowRef = useRef<THREE.InstancedMesh>(null!)
-  const dummy = useRef(new THREE.Object3D())
-  const { camera } = useThree()
+  const meshRef = useRef<THREE.InstancedMesh>(null!)
 
-  const highGeo = useMemo(() => createGrassGeometry(7), [])
-  const lowGeo = useMemo(() => createGrassGeometry(1), [])
+  const geo = useMemo(() => createGrassGeometry(5), [])
 
   const material = useMemo(() => {
     return new THREE.ShaderMaterial({
@@ -104,9 +92,6 @@ export default function GrassField({
         uFogColorNight: { value: new THREE.Color(...biome.fogColorNight) },
         uNightBlend: { value: 0.0 },
         uGlowIntensity: { value: biome.glowIntensity },
-        uDogPosition: { value: new THREE.Vector3() },
-        uTrailPositions: { value: new Float32Array(90) },
-        uTrailCount: { value: 0 },
         uLightDirection: { value: new THREE.Vector3(5, 10, 5).normalize() },
         uLightColor: { value: new THREE.Color(1.0, 0.96, 0.9) },
         uLightIntensity: { value: 1.5 },
@@ -115,106 +100,67 @@ export default function GrassField({
     })
   }, [])
 
-  // Store blade data: position offsets relative to field center, rotation, bladeType, bladeRand
-  const bladeData = useMemo(() => {
-    const data = new Float32Array(INSTANCE_COUNT * 5) // x, z, rotation, bladeType, bladeRand
-    for (let i = 0; i < INSTANCE_COUNT; i++) {
-      const idx = i * 5
-      data[idx] = (Math.random() - 0.5) * FIELD_SIZE     // x offset
-      data[idx + 1] = (Math.random() - 0.5) * FIELD_SIZE // z offset
-      data[idx + 2] = Math.random() * Math.PI * 2         // rotation
-      // Blade type: mostly grass, some flowers
-      const typeRoll = Math.random()
-      data[idx + 3] = typeRoll < 0.05 ? 3.0 : typeRoll < 0.12 ? 2.0 : typeRoll < 0.3 ? 1.0 : 0.0
-      data[idx + 4] = Math.random() // bladeRand
-    }
-    return data
-  }, [])
-
-  // Pre-allocate per-mesh attribute arrays that get synced with LOD assignment
-  const highBladeTypes = useMemo(() => new Float32Array(INSTANCE_COUNT), [])
-  const highBladeRands = useMemo(() => new Float32Array(INSTANCE_COUNT), [])
-  const lowBladeTypes = useMemo(() => new Float32Array(INSTANCE_COUNT), [])
-  const lowBladeRands = useMemo(() => new Float32Array(INSTANCE_COUNT), [])
-
-  const attrsSet = useRef(false)
+  // Place blades on upper hemisphere using Fibonacci sampling - ONE TIME
+  const initialized = useRef(false)
+  useMemo(() => {
+    // Reset so init runs again if this memo re-fires
+    initialized.current = false
+  }, [sphereRadius])
 
   useFrame((state) => {
-    if (!highRef.current || !lowRef.current) return
+    if (!meshRef.current) return
 
-    // One-time attribute setup: create InstancedBufferAttributes referencing our arrays
-    if (!attrsSet.current) {
-      highRef.current.geometry.setAttribute('bladeType', new THREE.InstancedBufferAttribute(highBladeTypes, 1))
-      highRef.current.geometry.setAttribute('bladeRand', new THREE.InstancedBufferAttribute(highBladeRands, 1))
-      lowRef.current.geometry.setAttribute('bladeType', new THREE.InstancedBufferAttribute(lowBladeTypes, 1))
-      lowRef.current.geometry.setAttribute('bladeRand', new THREE.InstancedBufferAttribute(lowBladeRands, 1))
-      attrsSet.current = true
-    }
+    // One-time instance placement
+    if (!initialized.current) {
+      const dummy = new THREE.Object3D()
+      const up = new THREE.Vector3(0, 1, 0)
+      const goldenAngle = Math.PI * (3 - Math.sqrt(5))
 
-    const elapsed = state.clock.getElapsedTime()
-    const center = fieldCenter.current
-    const halfField = FIELD_SIZE / 2
+      const bladeTypeArr = new Float32Array(INSTANCE_COUNT)
+      const bladeRandArr = new Float32Array(INSTANCE_COUNT)
 
-    const d = dummy.current
-    let highIdx = 0
-    let lowIdx = 0
+      for (let i = 0; i < INSTANCE_COUNT; i++) {
+        // Fibonacci sphere - upper hemisphere only
+        const y = 1 - (i / INSTANCE_COUNT) // 1.0 (top) to 0.0 (equator)
+        const radiusAtY = Math.sqrt(1 - y * y)
+        const theta = goldenAngle * i
 
-    for (let i = 0; i < INSTANCE_COUNT; i++) {
-      const idx = i * 5
-      const bx = bladeData[idx]
-      const bz = bladeData[idx + 1]
+        const px = radiusAtY * Math.cos(theta) * sphereRadius
+        const py = y * sphereRadius
+        const pz = radiusAtY * Math.sin(theta) * sphereRadius
 
-      // Wrap offset into [-halfField, halfField]
-      let ox = ((bx + halfField) % FIELD_SIZE + FIELD_SIZE) % FIELD_SIZE - halfField
-      let oz = ((bz + halfField) % FIELD_SIZE + FIELD_SIZE) % FIELD_SIZE - halfField
+        // Normal = direction from center to surface point
+        const normal = new THREE.Vector3(px, py, pz).normalize()
 
-      // Store wrapped offset back
-      bladeData[idx] = ox
-      bladeData[idx + 1] = oz
+        // Orient blade along sphere normal
+        const quat = new THREE.Quaternion().setFromUnitVectors(up, normal)
+        // Add random spin around the normal for variety
+        const spinQuat = new THREE.Quaternion().setFromAxisAngle(normal, Math.random() * Math.PI * 2)
+        quat.premultiply(spinQuat)
 
-      // World position = offset + center
-      const wx = ox + center.x
-      const wz = oz + center.z
+        dummy.position.set(px, py, pz)
+        dummy.quaternion.copy(quat)
+        const s = 0.6 + Math.random() * 0.5
+        dummy.scale.set(s, s, s)
+        dummy.updateMatrix()
 
-      d.position.set(wx, 0, wz)
-      d.rotation.y = bladeData[idx + 2]
-      const scale = 0.8 + bladeData[idx + 4] * 0.4
-      d.scale.set(scale, scale, scale)
-      d.updateMatrix()
+        meshRef.current.setMatrixAt(i, dummy.matrix)
 
-      const bt = bladeData[idx + 3]
-      const br = bladeData[idx + 4]
-
-      const dist = camera.position.distanceTo(d.position)
-      if (dist < LOD_DISTANCE) {
-        if (highIdx < INSTANCE_COUNT) {
-          highBladeTypes[highIdx] = bt
-          highBladeRands[highIdx] = br
-          highRef.current.setMatrixAt(highIdx++, d.matrix)
-        }
-      } else {
-        if (lowIdx < INSTANCE_COUNT) {
-          lowBladeTypes[lowIdx] = bt
-          lowBladeRands[lowIdx] = br
-          lowRef.current.setMatrixAt(lowIdx++, d.matrix)
-        }
+        // Blade type: mostly grass, some flowers
+        const typeRoll = Math.random()
+        bladeTypeArr[i] = typeRoll < 0.05 ? 3.0 : typeRoll < 0.12 ? 2.0 : typeRoll < 0.3 ? 1.0 : 0.0
+        bladeRandArr[i] = Math.random()
       }
+
+      meshRef.current.instanceMatrix.needsUpdate = true
+      meshRef.current.geometry.setAttribute('bladeType', new THREE.InstancedBufferAttribute(bladeTypeArr, 1))
+      meshRef.current.geometry.setAttribute('bladeRand', new THREE.InstancedBufferAttribute(bladeRandArr, 1))
+      initialized.current = true
     }
 
-    highRef.current.count = highIdx
-    lowRef.current.count = lowIdx
-    highRef.current.instanceMatrix.needsUpdate = true
-    lowRef.current.instanceMatrix.needsUpdate = true
-
-    // Sync attribute buffers with GPU
-    ;(highRef.current.geometry.getAttribute('bladeType') as THREE.InstancedBufferAttribute).needsUpdate = true
-    ;(highRef.current.geometry.getAttribute('bladeRand') as THREE.InstancedBufferAttribute).needsUpdate = true
-    ;(lowRef.current.geometry.getAttribute('bladeType') as THREE.InstancedBufferAttribute).needsUpdate = true
-    ;(lowRef.current.geometry.getAttribute('bladeRand') as THREE.InstancedBufferAttribute).needsUpdate = true
-
-    // Update uniforms
+    // Update uniforms only - no matrix rebuilds
     const u = material.uniforms
-    u.uTime.value = elapsed
+    u.uTime.value = state.clock.getElapsedTime()
     u.uNightBlend.value = nightBlend
 
     // Lerp biome uniforms
@@ -236,17 +182,6 @@ export default function GrassField({
     u.uWindStrength.value = lerpScalar(biome.windStrength, targetBiome.windStrength, t)
     u.uGlowIntensity.value = lerpScalar(biome.glowIntensity, targetBiome.glowIntensity, t)
 
-    // Dog position
-    if (dogPosition.current) {
-      u.uDogPosition.value.copy(dogPosition.current)
-    }
-
-    // Trail wake
-    if (trailBuffer.current) {
-      u.uTrailPositions.value = trailBuffer.current
-      u.uTrailCount.value = trailCount.current
-    }
-
     // Lighting direction based on day/night
     u.uLightDirection.value.lerpVectors(DAY_LIGHT_DIR, NIGHT_LIGHT_DIR, nightBlend)
     u.uLightColor.value.setRGB(
@@ -258,9 +193,6 @@ export default function GrassField({
   })
 
   return (
-    <>
-      <instancedMesh ref={highRef} args={[highGeo, material, INSTANCE_COUNT]} frustumCulled={false} />
-      <instancedMesh ref={lowRef} args={[lowGeo, material, INSTANCE_COUNT]} frustumCulled={false} />
-    </>
+    <instancedMesh ref={meshRef} args={[geo, material, INSTANCE_COUNT]} frustumCulled={false} />
   )
 }

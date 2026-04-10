@@ -3,9 +3,6 @@ uniform float uSpeed;
 uniform float uHalfWidth;
 uniform float uWindStrength;
 uniform float uGrassHeight;
-uniform vec3 uDogPosition;
-uniform float uTrailPositions[90]; // 30 entries * 3 (x, z, age)
-uniform int uTrailCount;
 
 attribute float bladeType;
 attribute float bladeRand;
@@ -20,16 +17,6 @@ varying float vBladeRand;
 
 float rand(vec2 co) {
   return fract(sin(dot(co, vec2(12.9898, 78.233))) * 43758.5453);
-}
-
-mat3 rotationY(float angle) {
-  float c = cos(angle);
-  float s = sin(angle);
-  return mat3(
-    c, 0.0, -s,
-    0.0, 1.0, 0.0,
-    s, 0.0, c
-  );
 }
 
 float bezier(float t, float p1) {
@@ -78,23 +65,6 @@ float cnoise(vec2 P) {
   return 2.3 * n_xy;
 }
 
-float computeTrailFlatten(vec3 worldPos) {
-  float flatten = 0.0;
-  for (int i = 0; i < 30; i++) {
-    if (i >= uTrailCount) break;
-    int idx = i * 3;
-    float tx = uTrailPositions[idx];
-    float tz = uTrailPositions[idx + 1];
-    float age = uTrailPositions[idx + 2];
-    float dist = length(worldPos.xz - vec2(tx, tz));
-    float radius = 0.4;
-    float influence = 1.0 - smoothstep(0.0, radius, dist);
-    float decay = 1.0 - smoothstep(0.0, 3.0, age);
-    flatten = max(flatten, influence * decay);
-  }
-  return flatten;
-}
-
 vec3 deform(vec3 pos, float hash) {
   vec3 localPosition = pos;
 
@@ -109,60 +79,28 @@ vec3 deform(vec3 pos, float hash) {
     localPosition.x *= petalWiden;
   }
 
-  // Bezier bending
-  float bendStrength = mix(0.3, 0.6, hash);
+  // Bezier bending - use hash for consistent random bend direction
+  float bendStrength = mix(0.2, 0.4, hash);
   float bendStart = mix(0.0, 0.3, hash);
   float normalizedY = pos.y;
   float t = clamp((normalizedY - bendStart) / (1.0 - bendStart), 0.0, 1.0);
   float topBendFactor = bezier(t, 0.1);
-  // Use hash-based bend direction to avoid NaN from normalize(vec3(0))
   float bendAngle = hash * 6.28318;
   vec3 bendDir = vec3(cos(bendAngle), 0.0, sin(bendAngle));
   localPosition += bendDir * bendStrength * topBendFactor;
 
-  // Gentle sway
-  float gentleSway = sin(uTime * uSpeed * 0.8 + hash * 10.0) * 0.1 * uWindStrength;
-  vec3 gentleDir = normalize(vec3(1.0, 0.0, 1.0));
+  // Gentle sway - operates in blade-local space (works on sphere)
+  float gentleSway = sin(uTime * uSpeed * 0.8 + hash * 10.0) * 0.08 * uWindStrength;
+  vec3 gentleDir = vec3(0.707, 0.0, 0.707); // normalized (1,0,1)
   localPosition += gentleDir * gentleSway * normalizedY;
 
-  // Strong wind (Perlin noise)
-  vec3 worldPos = (instanceMatrix * vec4(pos, 1.0)).xyz;
-  float wave = cnoise(worldPos.xz * 0.3 + vec2(uTime * uSpeed * 0.2, 0.0));
-  float strongWind = wave * 0.65 * uWindStrength;
-  vec3 strongDir = normalize(vec3(0.0, 0.0, 1.0));
+  // Strong wind (Perlin noise) - use instance position for spatial variation
+  vec3 instancePos = instanceMatrix[3].xyz;
+  float wave = cnoise(instancePos.xz * 0.3 + vec2(uTime * uSpeed * 0.2, 0.0));
+  float strongWind = wave * 0.4 * uWindStrength;
+  vec3 strongDir = vec3(0.0, 0.0, 1.0);
   localPosition += strongDir * strongWind * pow(normalizedY, 2.0);
-  localPosition.y -= 0.1 * strongWind * pow(normalizedY, 2.0);
-
-  // Dog interaction: bend away
-  vec3 bladeWorldPos = instanceMatrix[3].xyz;
-  float dogDist = length(bladeWorldPos.xz - uDogPosition.xz);
-  float dogRadius = 0.5;
-  if (dogDist < dogRadius && dogDist > 0.001) {
-    float dogInfluence = (1.0 - dogDist / dogRadius) * normalizedY;
-    vec2 awayDir = (bladeWorldPos.xz - uDogPosition.xz) / dogDist;
-    localPosition.x += awayDir.x * dogInfluence * 0.4;
-    localPosition.z += awayDir.y * dogInfluence * 0.4;
-    localPosition.y -= dogInfluence * 0.15;
-  }
-
-  // Trail wake: flatten
-  float flatten = computeTrailFlatten(bladeWorldPos);
-  if (flatten > 0.0) {
-    localPosition.y *= (1.0 - flatten * 0.7);
-    localPosition.x *= (1.0 + flatten * 0.3);
-    localPosition.z *= (1.0 + flatten * 0.3);
-  }
-
-  // Billboard rotation toward camera
-  vec3 camPos = inverse(viewMatrix)[3].xyz;
-  vec2 toCam = camPos.xz - bladeWorldPos.xz;
-  float camDist2D = length(toCam);
-  if (camDist2D > 0.001) {
-    toCam /= camDist2D;
-    float angleToCamera = atan(toCam.y, toCam.x);
-    mat3 billboardRot = rotationY(angleToCamera);
-    localPosition = billboardRot * localPosition;
-  }
+  localPosition.y -= 0.08 * abs(strongWind) * pow(normalizedY, 2.0);
 
   return localPosition;
 }
@@ -173,9 +111,10 @@ void main() {
   vec3 offsetX = deform(position + vec3(0.01, 0.0, 0.0), hash);
   vec3 offsetY = deform(position + vec3(0.0, 0.01, 0.0), hash);
 
-  vec4 worldPosition = instanceMatrix * vec4(p, 1.0);
-  vec4 viewPosition = viewMatrix * worldPosition;
-  gl_Position = projectionMatrix * viewPosition;
+  // Instance matrix orients blade along sphere normal
+  // Model matrix includes sphere group rotation
+  vec4 worldPosition = modelMatrix * instanceMatrix * vec4(p, 1.0);
+  gl_Position = projectionMatrix * viewMatrix * worldPosition;
 
   vElevation = position.y;
   vPosition = worldPosition.xyz;

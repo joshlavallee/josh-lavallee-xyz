@@ -9,55 +9,55 @@ type GLTFResult = GLTF & {
   materials: { None: THREE.MeshStandardMaterial }
 }
 
-const MOVE_SPEED = 3.0
-const HOVER_HEIGHT = 1.0
+const MAX_DRIFT = 0.5
+const HOVER_HEIGHT_OFFSET = 1.5
 
 interface ButterflyProps {
   input: React.RefObject<{ x: number; y: number; active: boolean }>
-  positionRef: React.RefObject<THREE.Vector3>
+  sphereRadius: number
   isIdle: React.RefObject<boolean>
-  dogPosition: React.RefObject<THREE.Vector3>
+  dogWorldPosition: React.RefObject<THREE.Vector3>
 }
 
-export default function Butterfly({ input, positionRef, isIdle, dogPosition }: ButterflyProps) {
+export default function Butterfly({ input, sphereRadius, isIdle, dogWorldPosition }: ButterflyProps) {
   const groupRef = useRef<THREE.Group>(null)
   const { nodes, materials } = useGLTF('/models/Butterfly.glb') as GLTFResult
+  const driftX = useRef(0)
+  const driftZ = useRef(0)
 
-  useFrame(({ clock }, delta) => {
+  const hoverY = sphereRadius + HOVER_HEIGHT_OFFSET
+
+  useFrame(({ clock }) => {
     const t = clock.getElapsedTime()
     if (!groupRef.current) return
 
     const { x, y } = input.current
 
-    if (isIdle.current && dogPosition.current) {
+    if (isIdle.current && dogWorldPosition.current) {
       // Idle landing: descend toward dog's head
-      const landTarget = dogPosition.current.clone()
-      landTarget.y += 0.6 // dog's head height (scaled model)
+      const target = dogWorldPosition.current
+      groupRef.current.position.x = THREE.MathUtils.lerp(groupRef.current.position.x, target.x, 0.02)
+      groupRef.current.position.z = THREE.MathUtils.lerp(groupRef.current.position.z, target.z, 0.02)
 
-      groupRef.current.position.x = THREE.MathUtils.lerp(groupRef.current.position.x, landTarget.x, 0.02)
-      groupRef.current.position.z = THREE.MathUtils.lerp(groupRef.current.position.z, landTarget.z, 0.02)
-
-      // Descend to head height with reduced bob
-      const landY = landTarget.y + Math.sin(t * 3.5) * 0.03
+      const landY = target.y + 0.6 + Math.sin(t * 3.5) * 0.03
       groupRef.current.position.y = THREE.MathUtils.lerp(groupRef.current.position.y, landY, 0.03)
 
-      // Reduced wing flutter when perched
+      // Reduced flutter
       groupRef.current.rotation.z = Math.sin(t * 20) * 0.04
     } else {
-      // Move in world space
-      if (x !== 0 || y !== 0) {
-        groupRef.current.position.x += x * MOVE_SPEED * delta
-        groupRef.current.position.z -= y * MOVE_SPEED * delta
-      }
+      // Subtle drift in input direction (butterfly stays near center)
+      driftX.current = THREE.MathUtils.lerp(driftX.current, x * MAX_DRIFT, 0.05)
+      driftZ.current = THREE.MathUtils.lerp(driftZ.current, -y * MAX_DRIFT, 0.05)
 
-      // Hover bob
-      groupRef.current.position.y = HOVER_HEIGHT + Math.sin(t * 3.5) * 0.12
+      groupRef.current.position.x = driftX.current
+      groupRef.current.position.z = driftZ.current
+      groupRef.current.position.y = hoverY + Math.sin(t * 3.5) * 0.12
 
       // Wing flutter
       groupRef.current.rotation.z = Math.sin(t * 20) * 0.15
     }
 
-    // Face movement direction (always active)
+    // Face movement direction
     if (Math.abs(x) > 0.01 || Math.abs(y) > 0.01) {
       const targetRot = Math.atan2(x, -y)
       groupRef.current.rotation.y = THREE.MathUtils.lerp(
@@ -66,13 +66,10 @@ export default function Butterfly({ input, positionRef, isIdle, dogPosition }: B
         0.05,
       )
     }
-
-    // Update shared position ref
-    positionRef.current.copy(groupRef.current.position)
   })
 
   return (
-    <group ref={groupRef} position={[0, HOVER_HEIGHT, 2]} dispose={null}>
+    <group ref={groupRef} position={[0, hoverY, 0]} dispose={null}>
       <mesh
         geometry={nodes.butterfly.geometry}
         material={materials.None}

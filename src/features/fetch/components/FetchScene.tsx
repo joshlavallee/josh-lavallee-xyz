@@ -11,12 +11,12 @@ import Sun from './Sun'
 import Moon from './Moon'
 import VirtualJoystick from './VirtualJoystick'
 import { useInput, setJoystickInput } from '../hooks/useInput'
-import { useTrailWake } from '../hooks/useTrailWake'
 import { BIOMES, DEFAULT_BIOME_INDEX } from '../lib/biomes'
 
-const GROUND_SIZE = 80
+const SPHERE_RADIUS = 4
+const ROTATION_SPEED = 0.5
 
-// Module-level color constants (no per-frame allocations)
+// Module-level color constants
 const DAY_AMBIENT = new THREE.Color(0xb0d4f1)
 const NIGHT_AMBIENT = new THREE.Color(0x1a1a3a)
 const DAY_DIR = new THREE.Color(0xfff5e6)
@@ -31,27 +31,20 @@ const NIGHT_BG = new THREE.Color('#0A0A2A')
 export default function FetchScene({ colorMode }: SceneProps) {
   const { camera } = useThree()
   const input = useInput()
-  const fieldCenter = useRef(new THREE.Vector3(0, 0, 0))
-  const dogPosition = useRef(new THREE.Vector3(0, 0, 0))
-  const butterflyPosition = useRef(new THREE.Vector3(0, 0, 2))
-  const trail = useTrailWake()
-  const groundRef = useRef<THREE.Mesh>(null!)
+  const sphereRef = useRef<THREE.Group>(null!)
   const idleTimer = useRef(0)
   const isIdle = useRef(false)
+  const isMoving = useRef(false)
+  const isFast = useRef(false)
+  const facingAngle = useRef(0)
+  const dogWorldPos = useRef(new THREE.Vector3(0, SPHERE_RADIUS, 0))
+  const _dogLocal = useRef(new THREE.Vector3(0, SPHERE_RADIUS, 0))
 
-  // Reusable camera Vector3s (no per-frame allocations)
-  const _lookAt = useRef(new THREE.Vector3())
-  const _dogFacing = useRef(new THREE.Vector3())
-  const _idealPos = useRef(new THREE.Vector3())
-  const _currentLookAt = useRef(new THREE.Vector3())
-
-  // Light refs for smooth in-useFrame updates
+  // Light refs
   const ambientRef = useRef<THREE.AmbientLight>(null!)
   const dirLightRef = useRef<THREE.DirectionalLight>(null!)
   const hemiRef = useRef<THREE.HemisphereLight>(null!)
-  const groundMatRef = useRef<THREE.MeshStandardMaterial>(null!)
-
-  // Reusable background color
+  const sphereMatRef = useRef<THREE.MeshStandardMaterial>(null!)
   const bgColor = useRef(new THREE.Color())
 
   // Biome state
@@ -75,7 +68,17 @@ export default function FetchScene({ colorMode }: SceneProps) {
   const nightBlendRef = useRef(colorMode === 'dark' ? 1.0 : 0.0)
   const targetNightBlend = colorMode === 'dark' ? 1.0 : 0.0
 
+  // Set fixed camera on first frame
+  const cameraSet = useRef(false)
+
   useFrame((state, delta) => {
+    // Fixed camera - set once
+    if (!cameraSet.current) {
+      camera.position.set(0, 7, 7)
+      camera.lookAt(0, 0, 0)
+      cameraSet.current = true
+    }
+
     // Lerp night blend
     nightBlendRef.current = THREE.MathUtils.lerp(nightBlendRef.current, targetNightBlend, delta * 2.0)
 
@@ -89,20 +92,24 @@ export default function FetchScene({ colorMode }: SceneProps) {
       }
     }
 
-    // Update field center (midpoint of dog and butterfly)
-    fieldCenter.current.set(
-      (dogPosition.current.x + butterflyPosition.current.x) / 2,
-      0,
-      (dogPosition.current.z + butterflyPosition.current.z) / 2,
-    )
-
-    // Move ground plane to follow field center
-    if (groundRef.current) {
-      groundRef.current.position.x = fieldCenter.current.x
-      groundRef.current.position.z = fieldCenter.current.z
+    // Sphere rotation from input
+    const { x, y } = input.current
+    if (sphereRef.current && (x !== 0 || y !== 0)) {
+      // W/Up = sphere rotates toward camera (positive X rotation)
+      // D/Right = sphere rotates left (negative Z rotation)
+      sphereRef.current.rotation.x += y * ROTATION_SPEED * delta
+      sphereRef.current.rotation.z -= x * ROTATION_SPEED * delta
     }
 
-    trail.update(delta, dogPosition.current.x, dogPosition.current.z)
+    // Derive dog facing from input direction
+    if (x !== 0 || y !== 0) {
+      facingAngle.current = Math.atan2(x, -y)
+    }
+
+    // Movement state for dog animations
+    const speed = Math.sqrt(x * x + y * y)
+    isMoving.current = speed > 0.1
+    isFast.current = speed > 0.7
 
     // Idle detection
     if (input.current.active) {
@@ -113,6 +120,12 @@ export default function FetchScene({ colorMode }: SceneProps) {
       if (idleTimer.current > 2.0) {
         isIdle.current = true
       }
+    }
+
+    // Compute dog's world position (local top of sphere transformed by sphere rotation)
+    if (sphereRef.current) {
+      dogWorldPos.current.copy(_dogLocal.current)
+      sphereRef.current.localToWorld(dogWorldPos.current)
     }
 
     // Smooth lighting transitions
@@ -135,11 +148,11 @@ export default function FetchScene({ colorMode }: SceneProps) {
       hemiRef.current.groundColor.lerpColors(DAY_GROUND_HEMI, NIGHT_GROUND_HEMI, nb)
       hemiRef.current.intensity = THREE.MathUtils.lerp(0.3, 0.15, nb)
     }
-    if (groundMatRef.current) {
+    if (sphereMatRef.current) {
       const prevGround = BIOMES[prevBiomeIdx.current].groundColor
       const targetGround = BIOMES[biomeIdx].groundColor
       const t = biomeT.current
-      groundMatRef.current.color.setRGB(
+      sphereMatRef.current.color.setRGB(
         prevGround[0] + (targetGround[0] - prevGround[0]) * t,
         prevGround[1] + (targetGround[1] - prevGround[1]) * t,
         prevGround[2] + (targetGround[2] - prevGround[2]) * t,
@@ -149,35 +162,10 @@ export default function FetchScene({ colorMode }: SceneProps) {
     // Sky background lerp
     bgColor.current.lerpColors(DAY_BG, NIGHT_BG, nb)
     state.scene.background = bgColor.current
-
-    // Follow camera: behind dog, looking toward butterfly
-    const dogPos = dogPosition.current
-    const bflyPos = butterflyPosition.current
-
-    // Camera looks at weighted point between dog and butterfly
-    _lookAt.current.set(
-      dogPos.x * 0.6 + bflyPos.x * 0.4,
-      0.5,
-      dogPos.z * 0.6 + bflyPos.z * 0.4,
-    )
-
-    // Camera offset: behind and above the dog
-    _dogFacing.current.set(bflyPos.x - dogPos.x, 0, bflyPos.z - dogPos.z)
-    if (_dogFacing.current.length() > 0.01) _dogFacing.current.normalize()
-    else _dogFacing.current.set(0, 0, -1)
-
-    _idealPos.current.set(
-      dogPos.x - _dogFacing.current.x * 4,
-      3,
-      dogPos.z - _dogFacing.current.z * 4,
-    )
-
-    camera.position.lerp(_idealPos.current, 0.03)
-    camera.getWorldDirection(_currentLookAt.current)
-    const targetLookAtDir = _lookAt.current.sub(camera.position).normalize()
-    _currentLookAt.current.lerp(targetLookAtDir, 0.05)
-    camera.lookAt(camera.position.clone().add(_currentLookAt.current))
   })
+
+  // Sun/Moon use a fixed ref at origin since camera doesn't move
+  const originRef = useRef(new THREE.Vector3(0, 0, 0))
 
   return (
     <>
@@ -186,38 +174,48 @@ export default function FetchScene({ colorMode }: SceneProps) {
       <directionalLight ref={dirLightRef} />
       <hemisphereLight ref={hemiRef} />
 
-      <Sun fieldCenter={fieldCenter} nightBlendRef={nightBlendRef} />
-      <Moon fieldCenter={fieldCenter} nightBlendRef={nightBlendRef} />
+      <Sun fieldCenter={originRef} nightBlendRef={nightBlendRef} />
+      <Moon fieldCenter={originRef} nightBlendRef={nightBlendRef} />
 
       {/* Stars (night only) */}
       {targetNightBlend > 0.3 && (
         <Stars radius={50} count={2000} fade speed={0.5} />
       )}
 
-      {/* Ground plane */}
-      <mesh ref={groundRef} rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.02, 0]}>
-        <planeGeometry args={[GROUND_SIZE, GROUND_SIZE]} />
-        <meshStandardMaterial ref={groundMatRef} />
-      </mesh>
+      {/* Sphere World - rotates based on input */}
+      <group ref={sphereRef}>
+        {/* Sphere ground */}
+        <mesh>
+          <sphereGeometry args={[SPHERE_RADIUS, 64, 64]} />
+          <meshStandardMaterial ref={sphereMatRef} />
+        </mesh>
 
-      {/* Grass */}
-      <GrassField
-        biome={BIOMES[prevBiomeIdx.current]}
-        targetBiome={BIOMES[biomeIdx]}
-        biomeTransition={biomeT.current}
-        nightBlend={nightBlendRef.current}
-        dogPosition={dogPosition}
-        fieldCenter={fieldCenter}
-        trailBuffer={trail.buffer}
-        trailCount={trail.count}
-      />
+        {/* Grass on upper hemisphere */}
+        <GrassField
+          biome={BIOMES[prevBiomeIdx.current]}
+          targetBiome={BIOMES[biomeIdx]}
+          biomeTransition={biomeT.current}
+          nightBlend={nightBlendRef.current}
+          sphereRadius={SPHERE_RADIUS}
+        />
 
-      <Butterfly input={input} positionRef={butterflyPosition} isIdle={isIdle} dogPosition={dogPosition} />
-      <Dog
-        butterflyPosition={butterflyPosition}
-        positionRef={dogPosition}
+        {/* Dog at top of sphere */}
+        <Dog
+          sphereRadius={SPHERE_RADIUS}
+          isMoving={isMoving}
+          isFast={isFast}
+          facingAngle={facingAngle}
+        />
+      </group>
+
+      {/* Butterfly in world space above the sphere */}
+      <Butterfly
+        input={input}
+        sphereRadius={SPHERE_RADIUS}
         isIdle={isIdle}
+        dogWorldPosition={dogWorldPos}
       />
+
       <Html fullscreen style={{ pointerEvents: 'none' }}>
         <div style={{ pointerEvents: 'auto' }}>
           <BiomeSelector currentIndex={biomeIdx} onBiomeChange={handleBiomeChange} />

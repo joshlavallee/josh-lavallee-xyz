@@ -14,119 +14,59 @@ type ActionName =
   | 'AnimalArmature|AnimalArmature|AnimalArmature|Run'
   | 'AnimalArmature|AnimalArmature|AnimalArmature|Walk'
 
-const MOVE_SPEED = 1.2
-const RUN_SPEED = 2.2
-const STOP_THRESHOLD = 0.5
-const RUN_THRESHOLD = 1.2
-
 const IDLE = 'AnimalArmature|AnimalArmature|AnimalArmature|Idle' as ActionName
 const WALK = 'AnimalArmature|AnimalArmature|AnimalArmature|Walk' as ActionName
 const RUN = 'AnimalArmature|AnimalArmature|AnimalArmature|Run' as ActionName
 
 interface DogProps {
-  butterflyPosition: React.RefObject<THREE.Vector3>
-  positionRef: React.RefObject<THREE.Vector3>
-  isIdle: React.RefObject<boolean>
+  sphereRadius: number
+  isMoving: React.RefObject<boolean>
+  isFast: React.RefObject<boolean>
+  facingAngle: React.RefObject<number>
 }
 
-export default function Dog({ butterflyPosition, positionRef, isIdle }: DogProps) {
-  const moveRef = useRef<THREE.Group>(null!)
+export default function Dog({ sphereRadius, isMoving, isFast, facingAngle }: DogProps) {
+  const groupRef = useRef<THREE.Group>(null!)
   const animRef = useRef<THREE.Group>(null!)
   const { scene, animations } = useGLTF('/models/Dog.glb')
   const clone = React.useMemo(() => SkeletonUtils.clone(scene), [scene])
   const { actions } = useAnimations(animations, animRef)
 
-  const stateRef = useRef({
-    posX: 0,
-    posZ: 0,
-    rotY: 0,
-    currentAnim: '' as string,
-    wasMoving: false,
-    shouldRun: false,
-  })
+  const currentAnim = useRef('')
 
   useEffect(() => {
     const idle = actions[IDLE]
     if (idle) {
       idle.reset().fadeIn(0.3).play()
-      stateRef.current.currentAnim = IDLE
+      currentAnim.current = IDLE
     }
   }, [actions])
 
-  useFrame((_, delta) => {
-    const s = stateRef.current
-    if (!moveRef.current || !butterflyPosition.current) return
+  useFrame(() => {
+    if (!groupRef.current) return
 
-    if (isIdle.current) {
-      // When idle, just face the butterfly and sit
-      const dx = butterflyPosition.current.x - s.posX
-      const dz = butterflyPosition.current.z - s.posZ
-      if (dx !== 0 || dz !== 0) {
-        const targetRot = Math.atan2(dx, dz)
-        s.rotY = THREE.MathUtils.lerp(s.rotY, targetRot, 0.03)
-      }
+    // Face the direction of movement (derived from sphere rotation)
+    groupRef.current.rotation.y = THREE.MathUtils.lerp(
+      groupRef.current.rotation.y,
+      facingAngle.current,
+      0.08,
+    )
 
-      moveRef.current.rotation.y = s.rotY
-
-      const desiredAnim = IDLE
-      if (desiredAnim !== s.currentAnim) {
-        const prev = actions[s.currentAnim as ActionName]
-        const next = actions[desiredAnim]
-        if (next) {
-          prev?.fadeOut(0.2)
-          next.reset().fadeIn(0.2).play()
-          s.currentAnim = desiredAnim
-        }
-      }
-    } else {
-      // --- existing chase logic starts here ---
-      const targetX = butterflyPosition.current.x
-      const targetZ = butterflyPosition.current.z
-      const dx = targetX - s.posX
-      const dz = targetZ - s.posZ
-      const dist = Math.sqrt(dx * dx + dz * dz)
-
-      const isMoving = dist > STOP_THRESHOLD
-      const shouldRun = dist > RUN_THRESHOLD
-
-      if (isMoving) {
-        const speed = shouldRun ? RUN_SPEED : MOVE_SPEED
-        const moveAmount = Math.min(speed * delta, dist)
-        s.posX += (dx / dist) * moveAmount
-        s.posZ += (dz / dist) * moveAmount
-
-        const targetRot = Math.atan2(dx, dz)
-        s.rotY = THREE.MathUtils.lerp(s.rotY, targetRot, 0.06)
-      } else {
-        if (dx !== 0 || dz !== 0) {
-          const targetRot = Math.atan2(dx, dz)
-          s.rotY = THREE.MathUtils.lerp(s.rotY, targetRot, 0.03)
-        }
-      }
-
-      moveRef.current.position.x = s.posX
-      moveRef.current.position.z = s.posZ
-      moveRef.current.rotation.y = s.rotY
-
-      // Animation transitions
-      const desiredAnim = isMoving ? (shouldRun ? RUN : WALK) : IDLE
-      if (desiredAnim !== s.currentAnim) {
-        const prev = actions[s.currentAnim as ActionName]
-        const next = actions[desiredAnim]
-        if (next) {
-          prev?.fadeOut(0.2)
-          next.reset().fadeIn(0.2).play()
-          s.currentAnim = desiredAnim
-        }
+    // Animation based on movement state
+    const desiredAnim = isMoving.current ? (isFast.current ? RUN : WALK) : IDLE
+    if (desiredAnim !== currentAnim.current) {
+      const prev = actions[currentAnim.current as ActionName]
+      const next = actions[desiredAnim]
+      if (next) {
+        prev?.fadeOut(0.2)
+        next.reset().fadeIn(0.2).play()
+        currentAnim.current = desiredAnim
       }
     }
-
-    // Update shared position ref (always, both branches)
-    positionRef.current.set(s.posX, 0, s.posZ)
   })
 
   return (
-    <group ref={moveRef} position={[0, 0, 0]} scale={0.5} dispose={null}>
+    <group ref={groupRef} position={[0, sphereRadius, 0]} scale={0.5} dispose={null}>
       <group ref={animRef}>
         <primitive object={clone} />
       </group>
