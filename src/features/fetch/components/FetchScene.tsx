@@ -119,8 +119,8 @@ export default function FetchScene({ colorMode }: SceneProps) {
       : THREE.MathUtils.lerp(0, WALK_ROTATION_SPEED, distance / RUN_THRESHOLD)
 
     if (sphereRef.current && (x !== 0 || y !== 0)) {
-      sphereRef.current.rotation.x += y * rotSpeed * delta
-      sphereRef.current.rotation.z -= x * rotSpeed * delta
+      sphereRef.current.rotation.x -= y * rotSpeed * delta
+      sphereRef.current.rotation.z += x * rotSpeed * delta
     }
 
     // Derive dog facing from input direction
