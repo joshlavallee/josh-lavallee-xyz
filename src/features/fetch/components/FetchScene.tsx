@@ -4,12 +4,15 @@ import { Stars } from '@react-three/drei'
 import * as THREE from 'three'
 import type { SceneProps } from '@/features/photography/types'
 import GrassField from './GrassField'
+import Butterfly from './Butterfly'
+import { useInput } from '../hooks/useInput'
 import { BIOMES, DEFAULT_BIOME_INDEX } from '../lib/biomes'
 
 const GROUND_SIZE = 80
 
 export default function FetchScene({ colorMode }: SceneProps) {
   const { camera } = useThree()
+  const input = useInput()
   const fieldCenter = useRef(new THREE.Vector3(0, 0, 0))
   const dogPosition = useRef(new THREE.Vector3(0, 0, 0))
   const butterflyPosition = useRef(new THREE.Vector3(0, 0, 2))
@@ -137,6 +140,8 @@ export default function FetchScene({ colorMode }: SceneProps) {
         trailBuffer={trailBuffer}
         trailCount={trailCount}
       />
+
+      <Butterfly input={input} positionRef={butterflyPosition} />
     </>
   )
 }
