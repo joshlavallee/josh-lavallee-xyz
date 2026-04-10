@@ -3,11 +3,10 @@ import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
 
 interface SunProps {
-  fieldCenter: React.RefObject<THREE.Vector3>
   nightBlendRef: React.RefObject<number>
 }
 
-export default function Sun({ fieldCenter, nightBlendRef }: SunProps) {
+export default function Sun({ nightBlendRef }: SunProps) {
   const groupRef = useRef<THREE.Group>(null!)
   const coronaRef = useRef<THREE.Mesh>(null!)
 
@@ -15,10 +14,6 @@ export default function Sun({ fieldCenter, nightBlendRef }: SunProps) {
     if (!groupRef.current) return
 
     const nightBlend = nightBlendRef.current
-
-    // Follow field center on the left horizon
-    const center = fieldCenter.current
-    groupRef.current.position.set(center.x - 30, 5, center.z)
 
     // Fade out during night
     const opacity = 1.0 - nightBlend
@@ -33,16 +28,16 @@ export default function Sun({ fieldCenter, nightBlendRef }: SunProps) {
   })
 
   return (
-    <group ref={groupRef}>
+    <group ref={groupRef} position={[-25, 3, -20]}>
       {/* Sun body */}
       <mesh>
-        <sphereGeometry args={[2, 32, 32]} />
+        <sphereGeometry args={[3, 32, 32]} />
         <meshBasicMaterial color="#FFF5E6" toneMapped={false} />
       </mesh>
 
       {/* Corona glow */}
       <mesh ref={coronaRef}>
-        <sphereGeometry args={[3.5, 32, 32]} />
+        <sphereGeometry args={[5, 32, 32]} />
         <meshBasicMaterial
           color="#FFD700"
           transparent
@@ -56,7 +51,7 @@ export default function Sun({ fieldCenter, nightBlendRef }: SunProps) {
 
       {/* Outer glow ring */}
       <mesh>
-        <ringGeometry args={[2.5, 5, 64]} />
+        <ringGeometry args={[4, 8, 64]} />
         <meshBasicMaterial
           color="#FFA500"
           transparent

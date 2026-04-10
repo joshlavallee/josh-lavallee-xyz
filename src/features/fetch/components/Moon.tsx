@@ -3,21 +3,16 @@ import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
 
 interface MoonProps {
-  fieldCenter: React.RefObject<THREE.Vector3>
   nightBlendRef: React.RefObject<number>
 }
 
-export default function Moon({ fieldCenter, nightBlendRef }: MoonProps) {
+export default function Moon({ nightBlendRef }: MoonProps) {
   const groupRef = useRef<THREE.Group>(null!)
 
   useFrame(() => {
     if (!groupRef.current) return
 
     const nightBlend = nightBlendRef.current
-
-    // Follow field center on the right horizon
-    const center = fieldCenter.current
-    groupRef.current.position.set(center.x + 30, 8, center.z)
 
     // Fade in during night
     const opacity = nightBlend
@@ -26,16 +21,16 @@ export default function Moon({ fieldCenter, nightBlendRef }: MoonProps) {
   })
 
   return (
-    <group ref={groupRef}>
+    <group ref={groupRef} position={[25, 5, -20]}>
       {/* Moon body */}
       <mesh>
-        <sphereGeometry args={[1.5, 32, 32]} />
+        <sphereGeometry args={[2, 32, 32]} />
         <meshBasicMaterial color="#E8E8F0" toneMapped={false} />
       </mesh>
 
       {/* Glow halo */}
       <mesh>
-        <sphereGeometry args={[2.8, 32, 32]} />
+        <sphereGeometry args={[3.5, 32, 32]} />
         <meshBasicMaterial
           color="#CCE5FF"
           transparent
@@ -49,7 +44,7 @@ export default function Moon({ fieldCenter, nightBlendRef }: MoonProps) {
 
       {/* Outer glow */}
       <mesh>
-        <ringGeometry args={[2, 4.5, 64]} />
+        <ringGeometry args={[3, 6, 64]} />
         <meshBasicMaterial
           color="#99BBFF"
           transparent
