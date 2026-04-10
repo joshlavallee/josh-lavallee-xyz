@@ -1,4 +1,4 @@
-import { useRef, useCallback } from 'react'
+import { useRef, useCallback, useEffect } from 'react'
 import { useFrame, useThree } from '@react-three/fiber'
 import { Stars, Html } from '@react-three/drei'
 import * as THREE from 'three'
@@ -37,7 +37,12 @@ const SUN_COLOR = new THREE.Color(0xfff5e6)
 const MOON_COLOR = new THREE.Color(0xcce5ff)
 
 export default function FetchScene({ colorMode }: SceneProps) {
-  const { camera } = useThree()
+  const { camera, scene } = useThree()
+
+  // Clean up scene background on unmount so it doesn't leak to other routes
+  useEffect(() => {
+    return () => { scene.background = null }
+  }, [scene])
   const input = useInput()
   const sphereRef = useRef<THREE.Group>(null!)
   const idleTimer = useRef(0)
