@@ -216,11 +216,11 @@ export default function FetchScene({ colorMode }: SceneProps) {
         dogWorldPosition={dogWorldPos}
       />
 
-      <Html fullscreen style={{ pointerEvents: 'none' }}>
+      <Html fullscreen style={{ pointerEvents: 'none', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', alignItems: 'center', paddingBottom: '6rem' }}>
         <div style={{ pointerEvents: 'auto' }}>
           <BiomeSelector currentIndex={biomeIdx} onBiomeChange={handleBiomeChange} />
-          <VirtualJoystick onInput={handleJoystickInput} />
         </div>
+        <VirtualJoystick onInput={handleJoystickInput} />
       </Html>
     </>
   )

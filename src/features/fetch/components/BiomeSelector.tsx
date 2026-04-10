@@ -22,10 +22,6 @@ export default function BiomeSelector({ currentIndex, onBiomeChange }: BiomeSele
   return (
     <div
       style={{
-        position: 'fixed',
-        bottom: '6rem',
-        left: '50%',
-        transform: 'translateX(-50%)',
         display: 'flex',
         alignItems: 'center',
         gap: '0.5rem',
