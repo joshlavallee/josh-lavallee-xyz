@@ -13,7 +13,7 @@ interface GrassFieldProps {
   sphereRadius: number
 }
 
-const INSTANCE_COUNT = 15000
+const INSTANCE_COUNT = 25000
 const HALF_WIDTH = 0.06
 const HEIGHT = 1
 
@@ -120,8 +120,8 @@ export default function GrassField({
       const bladeRandArr = new Float32Array(INSTANCE_COUNT)
 
       for (let i = 0; i < INSTANCE_COUNT; i++) {
-        // Fibonacci sphere - upper hemisphere only
-        const y = 1 - (i / INSTANCE_COUNT) // 1.0 (top) to 0.0 (equator)
+        // Fibonacci sphere - full sphere coverage
+        const y = 1 - (2 * i / (INSTANCE_COUNT - 1)) // 1.0 (top) to -1.0 (bottom)
         const radiusAtY = Math.sqrt(1 - y * y)
         const theta = goldenAngle * i
 
