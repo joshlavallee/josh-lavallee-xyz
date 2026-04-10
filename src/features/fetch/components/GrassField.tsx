@@ -131,27 +131,23 @@ export default function GrassField({
     return data
   }, [])
 
-  // Set custom attributes on both meshes
-  const setupAttributes = (mesh: THREE.InstancedMesh) => {
-    const bladeTypeArr = new Float32Array(INSTANCE_COUNT)
-    const bladeRandArr = new Float32Array(INSTANCE_COUNT)
-    for (let i = 0; i < INSTANCE_COUNT; i++) {
-      bladeTypeArr[i] = bladeData[i * 5 + 3]
-      bladeRandArr[i] = bladeData[i * 5 + 4]
-    }
-    mesh.geometry.setAttribute('bladeType', new THREE.InstancedBufferAttribute(bladeTypeArr, 1))
-    mesh.geometry.setAttribute('bladeRand', new THREE.InstancedBufferAttribute(bladeRandArr, 1))
-  }
+  // Pre-allocate per-mesh attribute arrays that get synced with LOD assignment
+  const highBladeTypes = useMemo(() => new Float32Array(INSTANCE_COUNT), [])
+  const highBladeRands = useMemo(() => new Float32Array(INSTANCE_COUNT), [])
+  const lowBladeTypes = useMemo(() => new Float32Array(INSTANCE_COUNT), [])
+  const lowBladeRands = useMemo(() => new Float32Array(INSTANCE_COUNT), [])
 
   const attrsSet = useRef(false)
 
   useFrame((state) => {
     if (!highRef.current || !lowRef.current) return
 
-    // One-time attribute setup
+    // One-time attribute setup: create InstancedBufferAttributes referencing our arrays
     if (!attrsSet.current) {
-      setupAttributes(highRef.current)
-      setupAttributes(lowRef.current)
+      highRef.current.geometry.setAttribute('bladeType', new THREE.InstancedBufferAttribute(highBladeTypes, 1))
+      highRef.current.geometry.setAttribute('bladeRand', new THREE.InstancedBufferAttribute(highBladeRands, 1))
+      lowRef.current.geometry.setAttribute('bladeType', new THREE.InstancedBufferAttribute(lowBladeTypes, 1))
+      lowRef.current.geometry.setAttribute('bladeRand', new THREE.InstancedBufferAttribute(lowBladeRands, 1))
       attrsSet.current = true
     }
 
@@ -165,34 +161,41 @@ export default function GrassField({
 
     for (let i = 0; i < INSTANCE_COUNT; i++) {
       const idx = i * 5
-      let bx = bladeData[idx]
-      let bz = bladeData[idx + 1]
+      const bx = bladeData[idx]
+      const bz = bladeData[idx + 1]
 
-      // Wrap position relative to field center
-      const wx = bx + center.x
-      const wz = bz + center.z
+      // Wrap offset into [-halfField, halfField]
+      let ox = ((bx + halfField) % FIELD_SIZE + FIELD_SIZE) % FIELD_SIZE - halfField
+      let oz = ((bz + halfField) % FIELD_SIZE + FIELD_SIZE) % FIELD_SIZE - halfField
 
-      // Modular wrapping
-      let finalX = ((wx - center.x + halfField) % FIELD_SIZE + FIELD_SIZE) % FIELD_SIZE - halfField + center.x
-      let finalZ = ((wz - center.z + halfField) % FIELD_SIZE + FIELD_SIZE) % FIELD_SIZE - halfField + center.z
+      // Store wrapped offset back
+      bladeData[idx] = ox
+      bladeData[idx + 1] = oz
 
-      // Update stored offset if wrapped
-      bladeData[idx] = finalX - center.x
-      bladeData[idx + 1] = finalZ - center.z
+      // World position = offset + center
+      const wx = ox + center.x
+      const wz = oz + center.z
 
-      d.position.set(finalX, 0, finalZ)
+      d.position.set(wx, 0, wz)
       d.rotation.y = bladeData[idx + 2]
       const scale = 0.8 + bladeData[idx + 4] * 0.4
       d.scale.set(scale, scale, scale)
       d.updateMatrix()
 
+      const bt = bladeData[idx + 3]
+      const br = bladeData[idx + 4]
+
       const dist = camera.position.distanceTo(d.position)
       if (dist < LOD_DISTANCE) {
         if (highIdx < INSTANCE_COUNT) {
+          highBladeTypes[highIdx] = bt
+          highBladeRands[highIdx] = br
           highRef.current.setMatrixAt(highIdx++, d.matrix)
         }
       } else {
         if (lowIdx < INSTANCE_COUNT) {
+          lowBladeTypes[lowIdx] = bt
+          lowBladeRands[lowIdx] = br
           lowRef.current.setMatrixAt(lowIdx++, d.matrix)
         }
       }
@@ -202,6 +205,12 @@ export default function GrassField({
     lowRef.current.count = lowIdx
     highRef.current.instanceMatrix.needsUpdate = true
     lowRef.current.instanceMatrix.needsUpdate = true
+
+    // Sync attribute buffers with GPU
+    ;(highRef.current.geometry.getAttribute('bladeType') as THREE.InstancedBufferAttribute).needsUpdate = true
+    ;(highRef.current.geometry.getAttribute('bladeRand') as THREE.InstancedBufferAttribute).needsUpdate = true
+    ;(lowRef.current.geometry.getAttribute('bladeType') as THREE.InstancedBufferAttribute).needsUpdate = true
+    ;(lowRef.current.geometry.getAttribute('bladeRand') as THREE.InstancedBufferAttribute).needsUpdate = true
 
     // Update uniforms
     const u = material.uniforms
